@@ -25,7 +25,7 @@ public class UserController {
         return repository.findAll();
     }
 
-    @GetMapping("/user/{id}")
+    @GetMapping("/{id}")
         public User getUser(@PathVariable Long id) {
         Long currentUserId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!id.equals(currentUserId)) {
