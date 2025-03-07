@@ -2,6 +2,7 @@ package aad.message.app.user;
 
 import aad.message.app.jwt.JwtUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +26,7 @@ public class UserController {
     }
 
     @GetMapping("/user/{id}")
-    public User getUser(@PathVariable Long id) {
+        public User getUser(@PathVariable Long id) {
         Long currentUserId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!id.equals(currentUserId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
