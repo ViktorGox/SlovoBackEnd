@@ -34,7 +34,7 @@ public class UserController {
         User userPrincipal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (!id.equals(userPrincipal.id)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
         return repository.findById(id).orElseThrow();
     }

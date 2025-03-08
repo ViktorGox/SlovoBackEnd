@@ -15,19 +15,19 @@ public class UserService {
     }
 
     public User loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
+        Optional<User> user = userRepository.findByUsername(username);
+        if (user.isEmpty()) {
             throw new UsernameNotFoundException("User not found");
         }
-        return user;
+        return user.get();
     }
 
     public User loadUserById(long id) {
-        User user = userRepository.findById(id);
-        if(user == null) {
+        Optional<User> user = userRepository.findById(id);
+        if(user.isEmpty()) {
             throw new UsernameNotFoundException("User not found");
         }
-        return user;
+        return user.get();
     }
 
     public boolean isUserUnique(User user) {
