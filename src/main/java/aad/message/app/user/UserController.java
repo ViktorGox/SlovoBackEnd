@@ -2,7 +2,6 @@ package aad.message.app.user;
 
 import aad.message.app.jwt.JwtUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -27,8 +26,8 @@ public class UserController {
 
     @GetMapping("/{id}")
     public User getUser(@PathVariable Long id) {
-        UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!id.equals(userPrincipal.getId())) {
+        User userPrincipal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!id.equals(userPrincipal.id)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
         return repository.findById(id).orElseThrow();
@@ -37,11 +36,10 @@ public class UserController {
     @PostMapping
     public String register(@RequestBody User user) {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        String hashedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(hashedPassword);
+        user.password = passwordEncoder.encode(user.password);
 
         User savedUser = repository.save(user);
-        return JwtUtils.generateToken(savedUser.getUsername());
+        return JwtUtils.generateToken(savedUser.username);
     }
 }
 

@@ -1,6 +1,7 @@
 package aad.message.app.jwt;
 
-import aad.message.app.user.UserDetailsServiceImplementation;
+import aad.message.app.user.User;
+import aad.message.app.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import jakarta.servlet.FilterChain;
@@ -12,32 +13,34 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
+import java.util.List;
 
 public class JwtMiddleware extends OncePerRequestFilter {
-
     @Autowired
-    private ApplicationContext context; // to get beans
+    private ApplicationContext context;
+
     public JwtMiddleware(ApplicationContext context) {
         this.context = context;
     }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
-        String token = null;
         String username = null;
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
+            String token = authHeader.substring(7);
             username = JwtUtils.validateTokenAndGetUsername(token);
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            var userDetailsService = context.getBean(UserDetailsServiceImplementation.class);
-            var userDetails = userDetailsService.loadUserByUsername(username);
+            UserService userService = context.getBean(UserService.class);
+            User user = userService.loadUserByUsername(username);
 
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
+                    user, null, List.of());
+
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
             SecurityContextHolder.getContext().setAuthentication(authToken);
