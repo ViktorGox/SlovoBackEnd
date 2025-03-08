@@ -3,6 +3,8 @@ package aad.message.app.user;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class UserService {
 
@@ -21,10 +23,15 @@ public class UserService {
     }
 
     public User loadUserById(long id) {
-        User user = userRepository.findUserById(id);
+        User user = userRepository.findById(id);
         if(user == null) {
             throw new UsernameNotFoundException("User not found");
         }
         return user;
+    }
+
+    public boolean isUserUnique(User user) {
+        Optional<User> existingUser = userRepository.findByUsernameOrEmail(user.username, user.email);
+        return existingUser.isEmpty();
     }
 }

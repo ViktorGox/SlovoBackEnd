@@ -34,6 +34,8 @@ public class JwtMiddleware extends OncePerRequestFilter {
             id = JwtUtils.validateTokenAndGetId(token);
         }
 
+        // TODO: Handle user not found?
+        // TOdO: Handle token invalid?
         if (id != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserService userService = context.getBean(UserService.class);
             User user = userService.loadUserById(id);

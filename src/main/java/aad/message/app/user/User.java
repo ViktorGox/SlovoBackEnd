@@ -28,4 +28,4 @@ public class User{
 
     @Column(name = "image_url")
     public String imageUrl;
-}
+    }
