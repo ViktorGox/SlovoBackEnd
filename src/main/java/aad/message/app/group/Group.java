@@ -1,8 +1,7 @@
 package aad.message.app.group;
 
+import aad.message.app.group_user.GroupUser;
 import jakarta.persistence.*;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -12,14 +11,18 @@ public class Group {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
 
+    @Column(nullable = false)
     public String name;
 
-    @Column(name = "image_url")
     public String imageUrl;
 
     @Column(name = "reminder_start")
-    public LocalDateTime reminderStart;
+    public java.time.LocalDateTime reminderStart;
 
     @Column(name = "reminder_frequency")
-    public Duration reminderFrequency;
+    public java.time.Duration reminderFrequency;
+
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<GroupUser> groupUsers;
+
 }
