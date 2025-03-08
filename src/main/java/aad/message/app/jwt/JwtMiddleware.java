@@ -27,16 +27,16 @@ public class JwtMiddleware extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
-        String username = null;
+        Long id = null;
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            username = JwtUtils.validateTokenAndGetUsername(token);
+            id = JwtUtils.validateTokenAndGetId(token);
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (id != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserService userService = context.getBean(UserService.class);
-            User user = userService.loadUserByUsername(username);
+            User user = userService.loadUserById(id);
 
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                     user, null, List.of());

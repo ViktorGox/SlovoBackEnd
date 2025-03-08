@@ -19,4 +19,12 @@ public class UserService {
         }
         return user;
     }
+
+    public User loadUserById(long id) {
+        User user = userRepository.findUserById(id);
+        if(user == null) {
+            throw new UsernameNotFoundException("User not found");
+        }
+        return user;
+    }
 }

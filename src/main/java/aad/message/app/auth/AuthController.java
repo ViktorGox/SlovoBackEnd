@@ -12,6 +12,6 @@ public class AuthController {
     public String login(@RequestParam String username, @RequestParam String password) {
         // Verify user in DB...
         Long userId = 123L;
-        return JwtUtils.generateToken("");
+        return JwtUtils.generateToken(123L);
     }
 }

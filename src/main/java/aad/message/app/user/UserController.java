@@ -39,7 +39,6 @@ public class UserController {
         user.password = passwordEncoder.encode(user.password);
 
         User savedUser = repository.save(user);
-        return JwtUtils.generateToken(savedUser.username);
+        return JwtUtils.generateToken(savedUser.id);
     }
 }
-
