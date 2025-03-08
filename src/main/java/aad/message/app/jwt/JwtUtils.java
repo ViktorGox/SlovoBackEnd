@@ -11,21 +11,21 @@ public class JwtUtils {
     private static final long EXPIRATION = 86400000; // 1 day
     private static final Key KEY = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
 
-    public static String generateToken(Long userId) {
+    public static String generateToken(String username) {
         return Jwts.builder()
-                .setSubject(String.valueOf(userId))
+                .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
                 .signWith(KEY, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public static Long validateTokenAndGetUserId(String token) {
+    public static String validateTokenAndGetUsername(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(KEY)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        return Long.parseLong(claims.getSubject());
+        return claims.getSubject();
     }
 }

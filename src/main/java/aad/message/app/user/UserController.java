@@ -26,9 +26,9 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-        public User getUser(@PathVariable Long id) {
-        Long currentUserId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!id.equals(currentUserId)) {
+    public User getUser(@PathVariable Long id) {
+        UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!id.equals(userPrincipal.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
         return repository.findById(id).orElseThrow();
@@ -41,7 +41,7 @@ public class UserController {
         user.setPassword(hashedPassword);
 
         User savedUser = repository.save(user);
-        return JwtUtils.generateToken(savedUser.getId());
+        return JwtUtils.generateToken(savedUser.getUsername());
     }
 }
 

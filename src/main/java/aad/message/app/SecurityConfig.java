@@ -1,6 +1,8 @@
 package aad.message.app;
 
 import aad.message.app.jwt.JwtMiddleware;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,6 +21,8 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+    @Autowired
+    private ApplicationContext context;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -32,7 +36,12 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 ).
                 sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(new JwtMiddleware(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtMiddleware(context), UsernamePasswordAuthenticationFilter.class)
                 .build();
+    }
+
+    @Bean
+    public JwtMiddleware jwtMiddleware() {
+        return new JwtMiddleware(context);
     }
 }
