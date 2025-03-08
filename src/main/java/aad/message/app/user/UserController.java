@@ -64,6 +64,6 @@ public class UserController {
 
         User savedUser = repository.save(user);
         // TODO: Return the user as well?
-        return ResponseEntity.badRequest().body(Collections.singletonMap("token", JwtUtils.generateToken(savedUser.id)));
+        return ResponseEntity.ok().body(Collections.singletonMap("token", JwtUtils.generateToken(savedUser.id)));
     }
 }
