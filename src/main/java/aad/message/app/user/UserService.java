@@ -30,7 +30,7 @@ public class UserService {
         return user.get();
     }
 
-    public boolean isUserUnique(User user) {
+    public boolean isUserUnique(UserRegisterDTO user) {
         Optional<User> existingUser = userRepository.findByUsernameOrEmail(user.username, user.email);
         return existingUser.isEmpty();
     }

@@ -7,6 +7,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
 
+/**
+ * User entity class for logic, not transfer.
+ */
 @Entity
 @Table(name = "\"user\"")
 public class User{
@@ -16,8 +19,6 @@ public class User{
 
     public String username;
 
-    public String password;
-
     @Column(name = "first_name")
     public String firstName;
 
@@ -25,7 +26,8 @@ public class User{
     public String lastName;
 
     public String email;
+    public String password;
 
     @Column(name = "image_url")
     public String imageUrl;
-    }
+}

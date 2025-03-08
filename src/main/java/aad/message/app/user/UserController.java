@@ -30,19 +30,22 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User getUser(@PathVariable Long id) {
+    public ResponseEntity<?> getUser(@PathVariable Long id) {
         User userPrincipal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (!id.equals(userPrincipal.id)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
-        return repository.findById(id).orElseThrow();
+
+        return repository.findById(id)
+                .map(user -> ResponseEntity.ok(new UserDTO(user)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<?> register(@RequestBody User user) {
+    public ResponseEntity<?> register(@RequestBody UserRegisterDTO dto) {
         UserService userService = context.getBean(UserService.class);
-        boolean isUnique = userService.isUserUnique(user);
+        boolean isUnique = userService.isUserUnique(dto);
 
         if (!isUnique) {
             return ResponseEntity.badRequest().body(Collections.singletonMap("error",
@@ -50,7 +53,14 @@ public class UserController {
         }
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        user.password = passwordEncoder.encode(user.password);
+        User user = new User();
+        user.username = dto.username;
+        user.firstName = dto.firstName;
+        user.lastName = dto.lastName;
+        user.password = passwordEncoder.encode(dto.password);
+        user.email = dto.email;
+
+        user.imageUrl = "default.png"; // TODO: Set real image as default.
 
         User savedUser = repository.save(user);
         // TODO: Return the user as well?
