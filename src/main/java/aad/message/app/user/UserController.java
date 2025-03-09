@@ -63,7 +63,6 @@ public class UserController {
         user.imageUrl = "default.png"; // TODO: Set real image as default.
 
         User savedUser = repository.save(user);
-        // TODO: Return the user as well?
         return ResponseEntity.ok().body(Collections.singletonMap("token", JwtUtils.generateToken(savedUser.id)));
     }
 }
