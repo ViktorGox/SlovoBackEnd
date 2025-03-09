@@ -13,7 +13,7 @@ CREATE TABLE "group" (
                          name TEXT NOT NULL,
                          image_url TEXT,
                          reminder_start TIMESTAMP,
-                         reminder_frequency INTERVAL
+                         reminder_frequency INTEGER
 );
 
 CREATE TABLE role (

@@ -20,7 +20,7 @@ public class Group {
     public java.time.LocalDateTime reminderStart;
 
     @Column(name = "reminder_frequency")
-    public java.time.Duration reminderFrequency;
+    public int reminderFrequency;
 
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<GroupUser> groupUsers;
