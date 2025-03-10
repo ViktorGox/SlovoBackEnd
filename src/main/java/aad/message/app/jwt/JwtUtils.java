@@ -1,7 +1,12 @@
 package aad.message.app.jwt;
 
+import aad.message.app.user.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.security.Key;
 import java.util.Date;
 import java.nio.charset.StandardCharsets;
@@ -27,5 +32,13 @@ public class JwtUtils {
                 .parseClaimsJws(token)
                 .getBody();
         return Long.parseLong(claims.getSubject());
+    }
+
+    public static void encodedIdMatches(Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (!id.equals(user.id)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
     }
 }
