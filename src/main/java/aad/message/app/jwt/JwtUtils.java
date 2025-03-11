@@ -25,6 +25,8 @@ public class JwtUtils {
                 .compact();
     }
 
+    // TODO: Throws an error when invalid, which is caught and returns 401, but is printed to the console.
+    //  Gives expiredJwtException
     public static Long validateTokenAndGetId(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(KEY)
