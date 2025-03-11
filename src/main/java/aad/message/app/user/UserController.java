@@ -9,8 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -25,11 +25,6 @@ public class UserController {
         this.context = context;
     }
 
-    @GetMapping
-    public List<User> getUsers() {
-        return repository.findAll();
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<?> getUser(@PathVariable Long id) {
         JwtUtils.encodedIdMatches(id);
@@ -41,6 +36,9 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<?> register(@Valid @RequestBody UserRegisterDTO dto) {
+        Collection<String> missingFields = UserRegisterDTO.verify(dto);
+        if(!missingFields.isEmpty()) return Responses.IncompleteBody(missingFields);
+
         UserService userService = context.getBean(UserService.class);
         boolean isUnique = userService.isUserUnique(dto);
 
@@ -65,6 +63,8 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody UserUpdateDTO dto) {
         JwtUtils.encodedIdMatches(id);
+        Collection<String> missingFields = UserUpdateDTO.verify(dto);
+        if(!missingFields.isEmpty()) return Responses.IncompleteBody(missingFields);
 
         Optional<User> user = repository.findById(id);
 
