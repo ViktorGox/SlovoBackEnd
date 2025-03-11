@@ -64,7 +64,7 @@ public class UserController {
     // TODO: Make checks for body contents?
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody UserUpdateDTO dto) {
-        JwtUtils.encodedIdMatches(id); // TODO: See how to add this as middleware in the security config probably
+        JwtUtils.encodedIdMatches(id);
 
         Optional<User> user = repository.findById(id);
 
