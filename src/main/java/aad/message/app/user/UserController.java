@@ -59,7 +59,7 @@ public class UserController {
         User savedUser = repository.save(user);
         return Responses.Ok("token", JwtUtils.generateToken(savedUser.id));
     }
-    // TODO: Make checks for body contents?
+
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody UserUpdateDTO dto) {
         JwtUtils.encodedIdMatches(id);
