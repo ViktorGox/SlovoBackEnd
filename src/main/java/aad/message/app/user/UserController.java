@@ -1,5 +1,7 @@
 package aad.message.app.user;
 
+import aad.message.app.filetransfer.FileType;
+import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.jwt.JwtUtils;
 import aad.message.app.returns.Responses;
 import jakarta.validation.Valid;
@@ -9,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -17,20 +20,19 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-
     private final UserRepository repository;
     private final ApplicationContext context;
+    private final FileUploadHandler fileUploadHandler;
 
-    public UserController(UserRepository repository, ApplicationContext context) {
+    public UserController(UserRepository repository, ApplicationContext context, FileUploadHandler fileUploadHandler) {
         this.repository = repository;
         this.context = context;
+        this.fileUploadHandler = fileUploadHandler;
     }
 
     @GetMapping
     public ResponseEntity<?> getUser() {
-        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        return repository.findById(userId)
+        return repository.findById(getUserId())
                 .map(user -> ResponseEntity.ok(new UserDTO(user)))
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -38,13 +40,13 @@ public class UserController {
     @PostMapping
     public ResponseEntity<?> register(@Valid @RequestBody UserRegisterDTO dto) {
         Collection<String> missingFields = UserRegisterDTO.verify(dto);
-        if(!missingFields.isEmpty()) return Responses.IncompleteBody(missingFields);
+        if (!missingFields.isEmpty()) return Responses.incompleteBody(missingFields);
 
         UserService userService = context.getBean(UserService.class);
         boolean isUnique = userService.isUserUnique(dto);
 
         if (!isUnique) {
-            return Responses.Error("Either the email or username is already in use.");
+            return Responses.error("Either the email or username is already in use.");
         }
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -58,20 +60,27 @@ public class UserController {
         user.imageUrl = "default.png"; // TODO: Set real image as default.
 
         User savedUser = repository.save(user);
-        return Responses.Ok("token", JwtUtils.generateToken(savedUser.id));
+        return Responses.ok("token", JwtUtils.generateToken(savedUser.id));
     }
 
     @PutMapping
-    public ResponseEntity<?> update(@RequestBody UserUpdateDTO dto) {
-        Collection<String> missingFields = UserUpdateDTO.verify(dto);
-        if(!missingFields.isEmpty()) return Responses.IncompleteBody(missingFields);
+    public ResponseEntity<?> update(@RequestPart(value = "file") MultipartFile file, @RequestPart(value = "dto") UserUpdateDTO dto) {
+        Long userId = getUserId();
 
-        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Optional<User> user = repository.findById(userId);
 
         if (user.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error",
                     "User with id " + userId + " not found"));
+        }
+
+        ResponseEntity<?> fileUploadResult = fileUploadHandler.uploadFile(file, FileType.PROFILE_PICTURE, userId);
+        if (fileUploadResult.getStatusCode() != HttpStatus.OK) return fileUploadResult;
+
+        if (fileUploadResult.getBody() instanceof String responseBody) {
+            user.get().imageUrl = responseBody;
+        } else {
+            Responses.internalError("File name failed to be derived from the uploaded file.");
         }
 
         if (dto.firstName != null) user.get().firstName = dto.firstName;
@@ -80,5 +89,14 @@ public class UserController {
 
         repository.save(user.get());
         return ResponseEntity.ok().body(new UserDTO(user.get()));
+    }
+
+    /**
+     * Simple method to remove repetitive long line copies and pastes.
+     *
+     * @return the userId from the JWT token.
+     */
+    private Long getUserId() {
+        return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }
