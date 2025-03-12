@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,11 +26,11 @@ public class UserController {
         this.context = context;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getUser(@PathVariable Long id) {
-        JwtUtils.encodedIdMatches(id);
+    @GetMapping
+    public ResponseEntity<?> getUser() {
+        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        return repository.findById(id)
+        return repository.findById(userId)
                 .map(user -> ResponseEntity.ok(new UserDTO(user)))
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -60,17 +61,17 @@ public class UserController {
         return Responses.Ok("token", JwtUtils.generateToken(savedUser.id));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody UserUpdateDTO dto) {
-        JwtUtils.encodedIdMatches(id);
+    @PutMapping
+    public ResponseEntity<?> update(@RequestBody UserUpdateDTO dto) {
         Collection<String> missingFields = UserUpdateDTO.verify(dto);
         if(!missingFields.isEmpty()) return Responses.IncompleteBody(missingFields);
 
-        Optional<User> user = repository.findById(id);
+        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Optional<User> user = repository.findById(userId);
 
         if (user.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error",
-                    "User with id " + id + " not found"));
+                    "User with id " + userId + " not found"));
         }
 
         if (dto.firstName != null) user.get().firstName = dto.firstName;
