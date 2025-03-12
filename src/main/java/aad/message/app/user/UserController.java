@@ -1,16 +1,17 @@
 package aad.message.app.user;
 
 import aad.message.app.jwt.JwtUtils;
+import aad.message.app.returns.Responses;
+import jakarta.validation.Valid;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -24,18 +25,9 @@ public class UserController {
         this.context = context;
     }
 
-    @GetMapping
-    public List<User> getUsers() {
-        return repository.findAll();
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<?> getUser(@PathVariable Long id) {
-        User userPrincipal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        if (!id.equals(userPrincipal.id)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
+        JwtUtils.encodedIdMatches(id);
 
         return repository.findById(id)
                 .map(user -> ResponseEntity.ok(new UserDTO(user)))
@@ -43,13 +35,15 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<?> register(@RequestBody UserRegisterDTO dto) {
+    public ResponseEntity<?> register(@Valid @RequestBody UserRegisterDTO dto) {
+        Collection<String> missingFields = UserRegisterDTO.verify(dto);
+        if(!missingFields.isEmpty()) return Responses.IncompleteBody(missingFields);
+
         UserService userService = context.getBean(UserService.class);
         boolean isUnique = userService.isUserUnique(dto);
 
         if (!isUnique) {
-            return ResponseEntity.badRequest().body(Collections.singletonMap("error",
-                    "Either the email or username is already in use."));
+            return Responses.Error("Either the email or username is already in use.");
         }
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -63,7 +57,27 @@ public class UserController {
         user.imageUrl = "default.png"; // TODO: Set real image as default.
 
         User savedUser = repository.save(user);
-        // TODO: Return the user as well?
-        return ResponseEntity.ok().body(Collections.singletonMap("token", JwtUtils.generateToken(savedUser.id)));
+        return Responses.Ok("token", JwtUtils.generateToken(savedUser.id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody UserUpdateDTO dto) {
+        JwtUtils.encodedIdMatches(id);
+        Collection<String> missingFields = UserUpdateDTO.verify(dto);
+        if(!missingFields.isEmpty()) return Responses.IncompleteBody(missingFields);
+
+        Optional<User> user = repository.findById(id);
+
+        if (user.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error",
+                    "User with id " + id + " not found"));
+        }
+
+        if (dto.firstName != null) user.get().firstName = dto.firstName;
+        if (dto.lastName != null) user.get().lastName = dto.lastName;
+        if (dto.email != null) user.get().email = dto.email;
+
+        repository.save(user.get());
+        return ResponseEntity.ok().body(new UserDTO(user.get()));
     }
 }

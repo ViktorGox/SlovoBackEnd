@@ -46,7 +46,7 @@ public class JwtMiddleware extends OncePerRequestFilter {
             }
 
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    user, null, List.of());
+                    user.get(), null, List.of());
 
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 

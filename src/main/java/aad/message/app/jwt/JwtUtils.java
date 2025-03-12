@@ -1,7 +1,12 @@
 package aad.message.app.jwt;
 
+import aad.message.app.user.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.security.Key;
 import java.util.Date;
 import java.nio.charset.StandardCharsets;
@@ -20,6 +25,8 @@ public class JwtUtils {
                 .compact();
     }
 
+    // TODO: Throws an error when invalid, which is caught and returns 401, but is printed to the console.
+    //  Gives expiredJwtException
     public static Long validateTokenAndGetId(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(KEY)
@@ -27,5 +34,13 @@ public class JwtUtils {
                 .parseClaimsJws(token)
                 .getBody();
         return Long.parseLong(claims.getSubject());
+    }
+
+    public static void encodedIdMatches(Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (!id.equals(user.id)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
     }
 }
