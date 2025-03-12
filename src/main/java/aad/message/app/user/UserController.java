@@ -63,9 +63,10 @@ public class UserController {
         return Responses.ok("token", JwtUtils.generateToken(savedUser.id));
     }
 
+    // TODO: Didn't delete the old image once, couldn't replicate it afterwards though.
     @PutMapping
     public ResponseEntity<?> update(@RequestPart(value = "file", required = false) MultipartFile file,
-                                    @RequestPart(value = "dto") UserUpdateDTO dto) {
+                                    @RequestPart(value = "dto", required = false) UserUpdateDTO dto) {
         Long userId = getUserId();
         Optional<User> user = repository.findById(userId);
 
@@ -87,9 +88,12 @@ public class UserController {
             }
         }
 
-        if (dto.firstName != null) user.get().firstName = dto.firstName;
-        if (dto.lastName != null) user.get().lastName = dto.lastName;
-        if (dto.email != null) user.get().email = dto.email;
+        // Only change data if a data has been sent, as it is not mandatory.
+        if(dto != null) {
+            if (dto.firstName != null) user.get().firstName = dto.firstName;
+            if (dto.lastName != null) user.get().lastName = dto.lastName;
+            if (dto.email != null) user.get().email = dto.email;
+        }
 
         repository.save(user.get());
         return ResponseEntity.ok().body(new UserDTO(user.get()));
