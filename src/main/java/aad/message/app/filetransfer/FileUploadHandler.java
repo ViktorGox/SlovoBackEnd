@@ -2,21 +2,21 @@ package aad.message.app.filetransfer;
 
 import aad.message.app.returns.Responses;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
-@RestController
-@RequestMapping("/files")
-public class FileController {
+@Component
+public class FileUploadHandler {
     private static final String UPLOAD_DIR = "uploads";
 
-    @PostMapping("/upload")
-    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
+    public Optional<ResponseEntity<?>> uploadFile(MultipartFile file, String fileName) {
         if (file.isEmpty()) {
-            Responses.Error("No file provided");
+            return Optional.of(Responses.Error("No file provided"));
         }
 
         try {
@@ -25,13 +25,16 @@ public class FileController {
                 Files.createDirectories(uploadPath);
             }
 
-            // Save file
-            Path filePath = uploadPath.resolve(file.getOriginalFilename());
+            Path filePath = uploadPath.resolve(fileName);
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            return ResponseEntity.ok("File uploaded successfully: " + file.getOriginalFilename());
+            return Optional.empty();
         } catch (IOException e) {
-            return ResponseEntity.internalServerError().body("Failed to upload file: " + e.getMessage());
+            return Optional.of(Responses.InternalError("Failed to upload file: " + e.getMessage()));
         }
+    }
+
+    public String generateName(FileType filePrefix, Long id) {
+        return filePrefix.getShortName() + LocalDateTime.now() + id;
     }
 }

@@ -15,6 +15,10 @@ public abstract class Responses {
         return ResponseEntity.badRequest().body(Collections.singletonMap("error", value));
     }
 
+    public static ResponseEntity<?> InternalError(String value) {
+        return ResponseEntity.internalServerError().body(Collections.singletonMap("error", value));
+    }
+
     public static ResponseEntity<?> IncompleteBody(Collection<String> missingElements) {
         return ResponseEntity.badRequest().body(Map.of(
                 "error", "Missing fields",
