@@ -30,6 +30,8 @@ public class JwtMiddleware extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         Long id = null;
 
+        // TODO: if you do Bearer Bearer token, it crashes.
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
 
@@ -45,8 +47,11 @@ public class JwtMiddleware extends OncePerRequestFilter {
                 return;
             }
 
+            // Saves only the id in the token, rather than the whole user because
+            //  The user data there can be outdated.
+            //  If decoded, user information can be seen that shouldn't be seen.
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    user.get(), null, List.of());
+                    user.get().id, null, List.of());
 
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
