@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 
 @RestController
@@ -57,30 +56,35 @@ public class UserController {
         user.password = passwordEncoder.encode(dto.password);
         user.email = dto.email;
 
-        user.imageUrl = "default.png"; // TODO: Set real image as default.
+        user.imageUrl = "pf_default.png"; // TODO: Set real image as default. Keep the name, used in the update
+                                          //  method within an if check to not delete the default image
 
         User savedUser = repository.save(user);
         return Responses.ok("token", JwtUtils.generateToken(savedUser.id));
     }
 
     @PutMapping
-    public ResponseEntity<?> update(@RequestPart(value = "file") MultipartFile file, @RequestPart(value = "dto") UserUpdateDTO dto) {
+    public ResponseEntity<?> update(@RequestPart(value = "file", required = false) MultipartFile file,
+                                    @RequestPart(value = "dto") UserUpdateDTO dto) {
         Long userId = getUserId();
-
         Optional<User> user = repository.findById(userId);
 
-        if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error",
-                    "User with id " + userId + " not found"));
-        }
+        if (user.isEmpty()) return Responses.notFound("User with id " + userId + " not found");
 
-        ResponseEntity<?> fileUploadResult = fileUploadHandler.uploadFile(file, FileType.PROFILE_PICTURE, userId);
-        if (fileUploadResult.getStatusCode() != HttpStatus.OK) return fileUploadResult;
+        // Uploading a new file is not mandatory, only do something if a file has been sent.
+        if(file != null) {
+            ResponseEntity<?> fileUploadResult = fileUploadHandler.uploadFile(file, FileType.PROFILE_PICTURE, userId);
+            if (fileUploadResult.getStatusCode() != HttpStatus.OK) return fileUploadResult;
 
-        if (fileUploadResult.getBody() instanceof String responseBody) {
-            user.get().imageUrl = responseBody;
-        } else {
-            Responses.internalError("File name failed to be derived from the uploaded file.");
+            if (fileUploadResult.getBody() instanceof String responseBody) {
+                if(!user.get().imageUrl.equals("pf_default.png")) {
+                    // do not remove the default image.
+                    fileUploadHandler.removeFile(user.get().imageUrl);
+                }
+                user.get().imageUrl = responseBody;
+            } else {
+                Responses.internalError("File name failed to be derived from the uploaded file.");
+            }
         }
 
         if (dto.firstName != null) user.get().firstName = dto.firstName;

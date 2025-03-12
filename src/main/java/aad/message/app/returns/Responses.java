@@ -1,5 +1,6 @@
 package aad.message.app.returns;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Collection;
@@ -24,5 +25,9 @@ public abstract class Responses {
                 "error", "Missing fields",
                 "missing_fields", missingElements
         ));
+    }
+
+    public static ResponseEntity<?> notFound(String value) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", value));
     }
 }

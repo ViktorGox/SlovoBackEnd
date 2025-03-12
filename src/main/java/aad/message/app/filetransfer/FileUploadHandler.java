@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.LocalDateTime;
@@ -38,6 +39,20 @@ public class FileUploadHandler {
             return ResponseEntity.ok(fileName);
         } catch (IOException e) {
             return Responses.internalError("Failed to upload file: " + e.getMessage());
+        }
+    }
+
+    // It is possible you delete a default image using this method!
+    public void removeFile(String fileName) {
+        File folder = new File(UPLOAD_DIR);
+        if (!folder.exists() || !folder.isDirectory()) return;
+
+        File[] matchingFiles = folder.listFiles((dir, name) -> name.equals(fileName));
+
+        if (matchingFiles != null) {
+            for (File file : matchingFiles) {
+                boolean ignored = file.delete();
+            }
         }
     }
 
