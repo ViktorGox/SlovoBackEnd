@@ -71,12 +71,12 @@ public class FileUploadHandler {
         return "";
     }
 
-    public boolean isValidAudioMimeType(MultipartFile file) {
+    private boolean isValidAudioMimeType(MultipartFile file) {
         List<String> allowedMimeTypes = List.of("audio/wav", "audio/mpeg");
         return isValidMimeType(file, allowedMimeTypes);
     }
 
-    public boolean isValidImageMimeType(MultipartFile file) {
+    private boolean isValidImageMimeType(MultipartFile file) {
         List<String> allowedMimeTypes = List.of("image/png", "image/jpeg");
         return isValidMimeType(file, allowedMimeTypes);
     }
