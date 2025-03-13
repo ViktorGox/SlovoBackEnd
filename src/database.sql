@@ -31,6 +31,7 @@ CREATE TABLE group_user_role (
                                  FOREIGN KEY (role_id) REFERENCES role(id)
 );
 
+-- TODO: Make sent_date be default now.
 CREATE TABLE message_text (
                               id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                               text TEXT NOT NULL,
@@ -43,10 +44,11 @@ CREATE TABLE message_text (
                               FOREIGN KEY (group_id) REFERENCES "group"(id)
 );
 
+-- TODO: Make sent_date be default now.
 CREATE TABLE message_audio (
                                id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                                audio_url TEXT NOT NULL,
-                               transcription TEXT,
+                               transcription TEXT NOT NULL,
                                reply_message_id INTEGER,
                                user_id INTEGER NOT NULL,
                                sent_date TIMESTAMP NOT NULL,

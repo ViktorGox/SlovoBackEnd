@@ -1,7 +1,8 @@
-package aad.message.app.voicemessage;
+package aad.message.app.messageaudio;
 
 import aad.message.app.group.Group;
 import aad.message.app.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -10,7 +11,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "message_audio")
-public class VoiceMessage {
+public class MessageAudio {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,7 +20,7 @@ public class VoiceMessage {
     @Column(name = "audio_url", nullable = false)
     public String audioUrl;
 
-    @Column(name = "transcription")
+    @Column(name = "transcription", nullable = false)
     public String transcription;
 
     @ManyToOne
@@ -28,11 +29,12 @@ public class VoiceMessage {
 
     @ManyToOne
     @JoinColumn(name = "reply_message_id")
-    public VoiceMessage replyMessage;
+    public MessageAudio replyMessage;
 
     @Column(name = "sent_date", nullable = false)
     public LocalDateTime sentDate;
 
+    @JsonIgnore
     @ManyToMany
     @JoinTable(
             name = "message_audio_group",
