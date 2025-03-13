@@ -64,6 +64,7 @@ public class UserController {
     }
 
     // TODO: Didn't delete the old image once, couldn't replicate it afterwards though.
+    // TODO: Handle providing duplicate email, check and return already in use, now it does 401
     @PutMapping
     public ResponseEntity<?> update(@RequestPart(value = "file", required = false) MultipartFile file,
                                     @RequestPart(value = "dto", required = false) UserUpdateDTO dto) {
