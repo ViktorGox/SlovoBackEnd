@@ -31,29 +31,25 @@ CREATE TABLE group_user_role (
                                  FOREIGN KEY (role_id) REFERENCES role(id)
 );
 
--- TODO: Make sent_date be default now.
+CREATE TABLE message (
+                         id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                         user_id INTEGER NOT NULL,
+                         sent_date TIMESTAMP NOT NULL,
+                         message_type TEXT CHECK (message_type IN ('text', 'audio')),
+                         reply_to_message_id INTEGER NULL REFERENCES message(id)
+);
+
 CREATE TABLE message_text (
-                              id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                              id INTEGER PRIMARY KEY REFERENCES message(id),
                               text TEXT NOT NULL,
-                              reply_message_id INTEGER,
-                              user_id INTEGER NOT NULL,
                               group_id INTEGER NOT NULL,
-                              sent_date TIMESTAMP NOT NULL,
-                              FOREIGN KEY (reply_message_id) REFERENCES message_text(id),
-                              FOREIGN KEY (user_id) REFERENCES "user"(id),
                               FOREIGN KEY (group_id) REFERENCES "group"(id)
 );
 
--- TODO: Make sent_date be default now.
 CREATE TABLE message_audio (
-                               id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                               id INTEGER PRIMARY KEY REFERENCES message(id),
                                audio_url TEXT NOT NULL,
-                               transcription TEXT NOT NULL,
-                               reply_message_id INTEGER,
-                               user_id INTEGER NOT NULL,
-                               sent_date TIMESTAMP NOT NULL,
-                               FOREIGN KEY (reply_message_id) REFERENCES message_audio(id),
-                               FOREIGN KEY (user_id) REFERENCES "user"(id)
+                               transcription TEXT NOT NULL
 );
 
 CREATE TABLE message_audio_group (
