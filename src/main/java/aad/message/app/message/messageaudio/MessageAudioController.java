@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-//TODO: Probably later change to group/id/messagesaudio
+//TODO: Probably later change to group/id/messagesaudio or /message/audio??
 @RestController
 @RequestMapping("/messagesaudio")
 public class MessageAudioController {
@@ -27,17 +27,6 @@ public class MessageAudioController {
         this.userRepository = userRepository;
     }
 
-    @GetMapping(path = "/{groupId}")
-    public ResponseEntity<?> getMessagePerGroup(@PathVariable Long groupId) {
-        // TODO: Check whether the user has access to the group.
-
-        List<MessageAudioDTO> messages = messageAudioRepository.findByGroupId(groupId)
-                .stream()
-                .map(MessageAudioDTO::new)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(messages);
-    }
-
 //    public ResponseEntity<?> postMessage(@RequestPart(value = "file") MultipartFile file,
 //                                         @RequestPart(value = "dto") MessageAudioPostDTO dto) {
 //        Long userId = getUserId();
@@ -45,7 +34,7 @@ public class MessageAudioController {
 //        // TODO: Check if user exists? - Not sure if needed. See UserController.update for code.
 //
 //        MessageAudio message = new MessageAudio();
-//        message.user = userRepository.getUserById(userId);
+//        message.user = userRepository.findBy(userId);
 //        message.sentDate = LocalDateTime.now();
 //        message.replyMessage = messageAudioRepository;
 //
