@@ -34,7 +34,8 @@ public class MessageAudio {
     @Column(name = "sent_date", nullable = false)
     public LocalDateTime sentDate;
 
-    @JsonIgnore
+    @JsonIgnore // TODO: Currently if not ignored, throws an null pointer exception.
+                //  Not used anyway, so didn't bother to fix it.
     @ManyToMany
     @JoinTable(
             name = "message_audio_group",
