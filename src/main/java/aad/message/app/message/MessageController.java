@@ -25,6 +25,8 @@ public class MessageController {
 
     @GetMapping("/{groupId}")
     public ResponseEntity<?> getMessagesForGroup(@PathVariable Long groupId) {
+        // TODO: Check whether the user has access to the group.
+
         List<Message> messages = messageService.getMessagesByGroupId(groupId);
 
         List<MessageDTO> messageDTOs = messages.stream()

@@ -13,6 +13,7 @@ public class MessageAudioDTO extends MessageDTO {
         audioUrl = message.audioUrl;
         transcription = message.transcription;
         userId = message.user.id;
+        messageType = message.messageType;
         replyToMessageId = (message.replyMessage != null) ? message.replyMessage.id : null;
         sentDate = message.sentDate;
     }
