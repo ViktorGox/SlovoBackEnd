@@ -9,4 +9,15 @@ public class MessageAudioDTO {
     public Long userId;
     public Long replyMessageId;
     public LocalDateTime sentDate;
+
+    public MessageAudioDTO() {}
+
+    public MessageAudioDTO(MessageAudio message) {
+        id = message.id;
+        audioUrl = message.audioUrl;
+        transcription = message.transcription;
+        userId = message.user.id;
+        replyMessageId = (message.replyMessage != null) ? message.replyMessage.id : null;
+        sentDate = message.sentDate;
+    }
 }

@@ -1,6 +1,5 @@
 package aad.message.app.messageaudio;
 
-import aad.message.app.returns.Responses;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,16 +26,7 @@ public class MessageAudioController {
 
         List<MessageAudioDTO> messages = repository.findByGroups_Id(groupId)
                 .stream()
-                .map(message -> {
-                    MessageAudioDTO dto = new MessageAudioDTO();
-                    dto.id = message.id;
-                    dto.audioUrl = message.audioUrl;
-                    dto.transcription = message.transcription;
-                    dto.userId = message.user.id;
-                    dto.replyMessageId = (message.replyMessage != null) ? message.replyMessage.id : null;
-                    dto.sentDate = message.sentDate;
-                    return dto;
-                })
+                .map(MessageAudioDTO::new)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(messages);
     }
