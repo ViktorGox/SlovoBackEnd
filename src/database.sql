@@ -22,10 +22,10 @@ CREATE TABLE role (
 );
 
 CREATE TABLE group_user_role (
+                                 id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                                  group_id INTEGER NOT NULL,
                                  user_id INTEGER NOT NULL,
                                  role_id INTEGER NOT NULL,
-                                 PRIMARY KEY (group_id, user_id, role_id),
                                  FOREIGN KEY (group_id) REFERENCES "group"(id),
                                  FOREIGN KEY (user_id) REFERENCES "user"(id),
                                  FOREIGN KEY (role_id) REFERENCES role(id)
