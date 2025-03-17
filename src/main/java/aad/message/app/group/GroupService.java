@@ -40,7 +40,7 @@ public class GroupService {
     }
 
     public List<GroupUser> getUsersByGroupId(Long groupId) {
-        return userGroupRepository.findByGroupId(groupId);
+        return groupUserRepository.findByGroupId(groupId);
     }
 
     public void addUserToGroup(User user, Group group) {
