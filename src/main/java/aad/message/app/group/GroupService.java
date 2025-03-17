@@ -7,6 +7,8 @@ import aad.message.app.user.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -35,6 +37,10 @@ public class GroupService {
 
     public Optional<Group> getGroupById(Long id) {
         return groupRepository.findById(id);
+    }
+
+    public List<GroupUser> getUsersByGroupId(Long groupId) {
+        return groupUserRepository.findByGroupId(groupId);
     }
 
     public void addUserToGroup(User user, Group group) {
