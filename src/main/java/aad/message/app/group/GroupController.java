@@ -1,7 +1,7 @@
 package aad.message.app.group;
 
+import aad.message.app.returns.Responses;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,15 +18,14 @@ public class GroupController {
     @PostMapping
     public ResponseEntity<?> createGroup(@Valid @RequestBody Group group) {
         if (group.name == null || group.name.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Group name is required.");
+            return Responses.error("Group name is required.");
         }
 
         try {
             Group createdGroup = groupService.createGroup(group);
             return ResponseEntity.ok(GroupDTO.fromEntity(createdGroup));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while creating the group.");
+            return Responses.internalError("An error occurred while creating the group.");
         }
     }
 }
