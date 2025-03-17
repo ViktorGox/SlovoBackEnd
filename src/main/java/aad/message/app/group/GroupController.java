@@ -1,9 +1,9 @@
 package aad.message.app.group;
 
+import aad.message.app.returns.Responses;
 import aad.message.app.group_user.GroupUser;
 import aad.message.app.user.UserDTO;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,20 +19,6 @@ public class GroupController {
 
     public GroupController(GroupService groupService) {
         this.groupService = groupService;
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getGroupById(@PathVariable Long id) {
-        try {
-            Optional<Group> group = groupService.getGroupById(id);
-            if (group.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Group not found.");
-            }
-            return ResponseEntity.ok(GroupDTO.fromEntity(group.get()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while fetching the group.");
-        }
     }
 
     @GetMapping("/{id}/users")
@@ -60,15 +46,27 @@ public class GroupController {
     @PostMapping
     public ResponseEntity<?> createGroup(@Valid @RequestBody Group group) {
         if (group.name == null || group.name.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Group name is required.");
+            return Responses.error("Group name is required.");
         }
 
         try {
             Group createdGroup = groupService.createGroup(group);
             return ResponseEntity.ok(GroupDTO.fromEntity(createdGroup));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while creating the group.");
+            return Responses.internalError("An error occurred while creating the group.");
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getGroupById(@PathVariable Long id) {
+        try {
+            Optional<Group> group = groupService.getGroupById(id);
+            if (group.isEmpty()) {
+                return Responses.notFound("Group not found.");
+            }
+            return ResponseEntity.ok(GroupDTO.fromEntity(group.get()));
+        } catch (Exception e) {
+            return Responses.internalError("An error occurred while fetching the group.");
         }
     }
 }
