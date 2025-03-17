@@ -53,10 +53,11 @@ CREATE TABLE message_audio (
                                transcription TEXT NOT NULL
 );
 
+-- TODO: On delete cascae?
 CREATE TABLE message_audio_group (
                                      message_audio_id INTEGER NOT NULL,
                                      group_id INTEGER NOT NULL,
                                      PRIMARY KEY (message_audio_id, group_id),
-                                     FOREIGN KEY (message_audio_id) REFERENCES message_audio(id),
-                                     FOREIGN KEY (group_id) REFERENCES "group"(id)
+                                     FOREIGN KEY (message_audio_id) REFERENCES message_audio(id) ON DELETE CASCADE,
+                                     FOREIGN KEY (group_id) REFERENCES "group"(id) ON DELETE CASCADE
 );
