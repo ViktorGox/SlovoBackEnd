@@ -5,7 +5,7 @@ import aad.message.app.user.User;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "group_user")
+@Table(name = "group_user_role")
 public class GroupUser {
 
     @Id
