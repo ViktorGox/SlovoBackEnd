@@ -36,12 +36,11 @@ public class GroupController {
         try {
             Optional<Group> group = groupService.getGroupById(id);
             if (group.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Group not found.");
+                return Responses.notFound("Group not found.");
             }
             return ResponseEntity.ok(GroupDTO.fromEntity(group.get()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred while fetching the group.");
+            return Responses.internalError("An error occurred while fetching the group.");
         }
     }
 }
