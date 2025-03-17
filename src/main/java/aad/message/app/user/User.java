@@ -1,11 +1,9 @@
 package aad.message.app.user;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Column;
+import aad.message.app.group_user.GroupUser;
+import jakarta.persistence.*;
+
+import java.util.Set;
 
 /**
  * User entity class for logic, not transfer.
@@ -30,4 +28,7 @@ public class User{
 
     @Column(name = "image_url")
     public String imageUrl;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<GroupUser> groupUsers;
 }
