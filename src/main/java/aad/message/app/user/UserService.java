@@ -22,12 +22,8 @@ public class UserService {
         return user.get();
     }
 
-    public User loadUserById(long id) {
-        Optional<User> user = userRepository.findById(id);
-        if(user.isEmpty()) {
-            throw new UsernameNotFoundException("User not found");
-        }
-        return user.get();
+    public Optional<User> loadUserById(long id) {
+        return userRepository.findById(id);
     }
 
     public boolean isUserUnique(UserRegisterDTO user) {

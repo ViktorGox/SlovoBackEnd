@@ -27,12 +27,14 @@ public class AuthController {
         Optional<User> user = repository.findByUsername(username);
 
         if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("error", "Invalid username or password"));
         }
 
         var passwordEncoder = new BCryptPasswordEncoder();
         if (!passwordEncoder.matches(password, user.get().password)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("error", "Invalid username or password"));
         }
 
         return ResponseEntity.ok().body(Collections.singletonMap("token", JwtUtils.generateToken(user.get().id)));
