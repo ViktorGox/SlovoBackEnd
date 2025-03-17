@@ -14,6 +14,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 public class JwtMiddleware extends OncePerRequestFilter {
     @Autowired
@@ -29,20 +30,28 @@ public class JwtMiddleware extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         Long id = null;
 
+        // TODO: if you do Bearer Bearer token, it crashes.
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
+
             id = JwtUtils.validateTokenAndGetId(token);
         }
 
-        // TODO: Surround in try catch?
-        // TODO: Handle user not found?
-        // TOdO: Handle token invalid?
         if (id != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserService userService = context.getBean(UserService.class);
-            User user = userService.loadUserById(id);
+            Optional<User> user = userService.loadUserById(id);
 
+            if (user.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+
+            // Saves only the id in the token, rather than the whole user because
+            //  The user data there can be outdated.
+            //  If decoded, user information can be seen that shouldn't be seen.
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    user, null, List.of());
+                    user.get().id, null, List.of());
 
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
