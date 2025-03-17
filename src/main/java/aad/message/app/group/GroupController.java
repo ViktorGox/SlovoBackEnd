@@ -5,6 +5,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 
 @RestController
 @RequestMapping("/groups")
@@ -26,6 +28,19 @@ public class GroupController {
             return ResponseEntity.ok(GroupDTO.fromEntity(createdGroup));
         } catch (Exception e) {
             return Responses.internalError("An error occurred while creating the group.");
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getGroupById(@PathVariable Long id) {
+        try {
+            Optional<Group> group = groupService.getGroupById(id);
+            if (group.isEmpty()) {
+                return Responses.notFound("Group not found.");
+            }
+            return ResponseEntity.ok(GroupDTO.fromEntity(group.get()));
+        } catch (Exception e) {
+            return Responses.internalError("An error occurred while fetching the group.");
         }
     }
 }
