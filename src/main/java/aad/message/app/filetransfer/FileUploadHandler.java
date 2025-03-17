@@ -42,6 +42,24 @@ public class FileUploadHandler {
         }
     }
 
+    /**
+     * Must be provided the return of the uploadFile method when it's .ok.
+     * Made to remove some repetitive lines.
+     * @param response The return of the uploadFile method when it's .ok
+     * @return the file name or "" if the return was not ok.
+     */
+    public String okFileName(ResponseEntity<?> response) {
+        if (response.getStatusCode() != HttpStatus.OK) return "";
+
+        if (response.getBody() instanceof String responseBody) {
+            return responseBody;
+        } else {
+            // Impossible to occur since the uploadFile
+            Responses.internalError("File name failed to be derived from the uploaded file.");
+        }
+        return "";
+    }
+
     // It is possible you delete a default image using this method!
     public void removeFile(String fileName) {
         File folder = new File(UPLOAD_DIR);

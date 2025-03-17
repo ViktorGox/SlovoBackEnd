@@ -78,15 +78,12 @@ public class UserController {
             ResponseEntity<?> fileUploadResult = fileUploadHandler.uploadFile(file, FileType.PROFILE_PICTURE, userId);
             if (fileUploadResult.getStatusCode() != HttpStatus.OK) return fileUploadResult;
 
-            if (fileUploadResult.getBody() instanceof String responseBody) {
-                if(!user.get().imageUrl.equals("pf_default.png")) {
-                    // do not remove the default image.
-                    fileUploadHandler.removeFile(user.get().imageUrl);
-                }
-                user.get().imageUrl = responseBody;
-            } else {
-                Responses.internalError("File name failed to be derived from the uploaded file.");
+            String fileName = fileUploadHandler.okFileName(fileUploadResult);
+            if(!user.get().imageUrl.equals("pf_default.png")) {
+                // do not remove the default image.
+                fileUploadHandler.removeFile(user.get().imageUrl);
             }
+            user.get().imageUrl = fileName;
         }
 
         // Only change data if a data has been sent, as it is not mandatory.
