@@ -7,6 +7,7 @@ import aad.message.app.message.Message;
 import aad.message.app.message.MessageRepository;
 import aad.message.app.message.messageadiogroup.MessageAudioGroup;
 import aad.message.app.message.messageadiogroup.MessageAudioGroupRepository;
+aimport aad.message.app.message.messageaudio.transcription.TranscriptionService;
 import aad.message.app.returns.Responses;
 import aad.message.app.user.User;
 import aad.message.app.user.UserRepository;
@@ -16,14 +17,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-//TODO: Probably later change to group/id/messagesaudio or /message/audio??
 @RestController
-@RequestMapping("/messagesaudio")
+@RequestMapping("/message/audio")
 public class MessageAudioController {
     private final MessageRepository messageRepository;
     private final MessageAudioRepository messageAudioRepository;
@@ -31,24 +32,27 @@ public class MessageAudioController {
     private final FileUploadHandler fileUploadHandler;
     private final MessageAudioGroupRepository messageAudioGroupRepository;
     private final GroupRepository groupRepository;
+    private final TranscriptionService transcriptionService;
 
     public MessageAudioController(UserRepository userRepository,
                                   FileUploadHandler fileUploadHandler,
                                   MessageAudioRepository messageAudioRepository,
                                   MessageRepository messageRepository,
                                   MessageAudioGroupRepository messageAudioGroupRepository,
-                                  GroupRepository groupRepository) {
+                                  GroupRepository groupRepository,
+                                  TranscriptionService transcriptionService) {
         this.messageAudioRepository = messageAudioRepository;
         this.fileUploadHandler = fileUploadHandler;
         this.userRepository = userRepository;
         this.messageRepository = messageRepository;
         this.messageAudioGroupRepository = messageAudioGroupRepository;
         this.groupRepository = groupRepository;
+        this.transcriptionService = transcriptionService;
     }
 
     @PostMapping
     public ResponseEntity<?> postMessage(@RequestPart(value = "file") MultipartFile file,
-                                         @RequestPart(value = "dto") MessageAudioPostDTO dto) {
+                                         @RequestPart(value = "dto") MessageAudioPostDTO dto) throws IOException {
         Long userId = getUserId();
         // TODO: Check whether the user has access to the group.
 
@@ -65,8 +69,8 @@ public class MessageAudioController {
                 message.replyMessage = reply.get();
             }
         }
-        message.audioUrl = "placeholder";
-        message.transcription = "dummy";
+        message.audioUrl = "";
+        message.transcription = "";
 
         message = messageAudioRepository.save(message);
 
@@ -81,6 +85,8 @@ public class MessageAudioController {
         messageAudioRepository.save(message);
 
         saveMessageAudioGroups(message, dto.groupIds);
+
+        transcriptionService.transcribeAudio(message);
 
         return ResponseEntity.ok(new MessageAudioDTO(message));
     }
