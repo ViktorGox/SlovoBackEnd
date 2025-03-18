@@ -1,10 +1,8 @@
 package aad.message.app.group;
 
+import aad.message.app.group_user.GroupUser;
 import jakarta.persistence.*;
-
-import java.time.LocalDateTime;
-
-// TODO: Dummy group class for voice message creation, overwrite with real class.
+import java.util.Set;
 
 @Entity
 @Table(name = "\"group\"")
@@ -19,13 +17,12 @@ public class Group {
     public String imageUrl;
 
     @Column(name = "reminder_start")
-    public LocalDateTime reminderStart;
+    public java.time.LocalDateTime reminderStart;
 
     @Column(name = "reminder_frequency")
-    public Integer reminderFrequency;
+    public int reminderFrequency;
 
-//    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private Set<GroupUser> groupUsers;
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<GroupUser> groupUsers;
 
 }
-
