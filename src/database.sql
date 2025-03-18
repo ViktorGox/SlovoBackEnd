@@ -44,7 +44,7 @@ CREATE TABLE message (
                          user_id INTEGER NOT NULL,
                          sent_date TIMESTAMP NOT NULL,
                          message_type TEXT CHECK (message_type IN ('text', 'audio')),
-                         reply_to_message_id INTEGER NULL REFERENCES message(id)
+                         reply_to_message_id INTEGER NULL REFERENCES message(id),
                          FOREIGN KEY (user_id) REFERENCES "user"(id)
 );
 
