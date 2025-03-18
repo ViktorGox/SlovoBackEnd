@@ -7,7 +7,7 @@ import aad.message.app.message.Message;
 import aad.message.app.message.MessageRepository;
 import aad.message.app.message.messageadiogroup.MessageAudioGroup;
 import aad.message.app.message.messageadiogroup.MessageAudioGroupRepository;
-aimport aad.message.app.message.messageaudio.transcription.TranscriptionService;
+import aad.message.app.message.messageaudio.transcription.TranscriptionService;
 import aad.message.app.returns.Responses;
 import aad.message.app.user.User;
 import aad.message.app.user.UserRepository;
