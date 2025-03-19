@@ -30,4 +30,5 @@ public class GroupUser {
     public User getUser() {
         return user;
     }
+    public Group getGroup() {return group;}
 }

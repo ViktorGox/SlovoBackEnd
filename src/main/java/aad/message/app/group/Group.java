@@ -26,5 +26,4 @@ public class Group {
 
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<GroupUser> groupUsers;
-
 }
