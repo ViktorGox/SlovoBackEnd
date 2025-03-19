@@ -99,11 +99,6 @@ public class MessageAudioController {
         messageAudioGroupRepository.saveAll(messageAudioGroups);
     }
 
-    /**
-     * Simple method to remove repetitive long line copies and pastes.
-     *
-     * @return the userId from the JWT token.
-     */
     private Long getUserId() {
         return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }

@@ -9,6 +9,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 @Component
 public class GroupAccessInterceptor implements HandlerInterceptor {
     private final GroupUserRepository groupUserRepository;
@@ -20,6 +21,8 @@ public class GroupAccessInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        // TODO: Doesn't handle post message/audio and message/text because they have group ids in the body.
 
         Pattern pattern = Pattern.compile("^/(groups|messages)/(\\d+)");
         Matcher matcher = pattern.matcher(request.getRequestURI());
