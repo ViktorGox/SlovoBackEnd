@@ -88,4 +88,28 @@ public class GroupController {
             return Responses.internalError("An error occurred while updating the group name.");
         }
     }
+
+    @PutMapping("/{id}/image")
+    public ResponseEntity<?> updateGroupImage(@PathVariable Long id, @RequestBody String newImageUrl) {
+        try {
+            Optional<Group> groupOptional = groupService.getGroupById(id);
+            if (groupOptional.isEmpty()) {
+                return Responses.notFound("Group not found.");
+            }
+
+            Group group = groupOptional.get();
+
+            if (newImageUrl == null || newImageUrl.trim().isEmpty()) {
+                return Responses.error("Image URL cannot be empty.");
+            }
+
+            group.imageUrl = newImageUrl;
+
+            groupService.updateGroup(group);
+
+            return ResponseEntity.ok(GroupDTO.fromEntity(group));
+        } catch (Exception e) {
+            return Responses.internalError("An error occurred while updating the image URL.");
+        }
+    }
 }
