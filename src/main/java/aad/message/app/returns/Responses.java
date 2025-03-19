@@ -30,4 +30,15 @@ public abstract class Responses {
     public static ResponseEntity<?> notFound(String value) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", value));
     }
+
+    /**
+     * Method intended to be called to stop a request by the point in which the user is requested from the
+     * UserRepository but has failed to be found.
+     * @param id The user that was not found.
+     * @return Internal Server Error with a specific message.
+     */
+    public static ResponseEntity<?> impossibleUserNotFound(Long id) {
+        return ResponseEntity.internalServerError().body(Collections.singletonMap("error", "The user " + id + "which" +
+                " requested made the request was not found, which should not be possible."));
+    }
 }

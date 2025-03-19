@@ -39,33 +39,33 @@ CREATE TABLE group_user_role (
                                  FOREIGN KEY (user_id) REFERENCES "user"(id)
 );
 
+CREATE TABLE message (
+                         id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                         user_id INTEGER NOT NULL,
+                         sent_date TIMESTAMP NOT NULL,
+                         message_type TEXT CHECK (message_type IN ('text', 'audio')),
+                         reply_to_message_id INTEGER NULL REFERENCES message(id),
+                         FOREIGN KEY (user_id) REFERENCES "user"(id)
+);
+
 CREATE TABLE message_text (
-                              id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                              id INTEGER PRIMARY KEY REFERENCES message(id),
                               text TEXT NOT NULL,
-                              reply_message_id INTEGER,
-                              user_id INTEGER NOT NULL,
                               group_id INTEGER NOT NULL,
-                              sent_date TIMESTAMP NOT NULL,
-                              FOREIGN KEY (reply_message_id) REFERENCES message_text(id),
-                              FOREIGN KEY (user_id) REFERENCES "user"(id),
                               FOREIGN KEY (group_id) REFERENCES "group"(id)
 );
 
 CREATE TABLE message_audio (
-                               id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                               id INTEGER PRIMARY KEY REFERENCES message(id),
                                audio_url TEXT NOT NULL,
-                               transcription TEXT,
-                               reply_message_id INTEGER,
-                               user_id INTEGER NOT NULL,
-                               sent_date TIMESTAMP NOT NULL,
-                               FOREIGN KEY (reply_message_id) REFERENCES message_audio(id),
-                               FOREIGN KEY (user_id) REFERENCES "user"(id)
+                               transcription TEXT NOT NULL
 );
 
+-- TODO: On delete cascae?
 CREATE TABLE message_audio_group (
                                      message_audio_id INTEGER NOT NULL,
                                      group_id INTEGER NOT NULL,
                                      PRIMARY KEY (message_audio_id, group_id),
-                                     FOREIGN KEY (message_audio_id) REFERENCES message_audio(id),
-                                     FOREIGN KEY (group_id) REFERENCES "group"(id)
+                                     FOREIGN KEY (message_audio_id) REFERENCES message_audio(id) ON DELETE CASCADE,
+                                     FOREIGN KEY (group_id) REFERENCES "group"(id) ON DELETE CASCADE
 );

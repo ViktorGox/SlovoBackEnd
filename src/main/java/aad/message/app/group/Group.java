@@ -2,6 +2,8 @@ package aad.message.app.group;
 
 import aad.message.app.group_user.GroupUser;
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -17,10 +19,10 @@ public class Group {
     public String imageUrl;
 
     @Column(name = "reminder_start")
-    public java.time.LocalDateTime reminderStart;
+    public LocalDateTime reminderStart;
 
     @Column(name = "reminder_frequency")
-    public int reminderFrequency;
+    public Integer reminderFrequency;
 
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<GroupUser> groupUsers;
