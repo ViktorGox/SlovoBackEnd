@@ -5,6 +5,7 @@ import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.group.GroupRepository;
 import aad.message.app.message.Message;
 import aad.message.app.message.MessageRepository;
+import aad.message.app.message.MessageType;
 import aad.message.app.message.messageadiogroup.MessageAudioGroup;
 import aad.message.app.message.messageadiogroup.MessageAudioGroupRepository;
 import aad.message.app.message.messageaudio.transcription.TranscriptionService;
@@ -54,7 +55,6 @@ public class MessageAudioController {
     public ResponseEntity<?> postMessage(@RequestPart(value = "file") MultipartFile file,
                                          @RequestPart(value = "dto") MessageAudioPostDTO dto) throws IOException {
         Long userId = getUserId();
-        // TODO: Check whether the user has access to the group.
 
         Optional<User> user = userRepository.findById(userId);
         if(user.isEmpty()) return Responses.impossibleUserNotFound(userId);
@@ -69,6 +69,7 @@ public class MessageAudioController {
                 message.replyMessage = reply.get();
             }
         }
+        message.messageType = MessageType.audio;
         message.audioUrl = "";
         message.transcription = "";
 
