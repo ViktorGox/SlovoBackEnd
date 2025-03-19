@@ -4,7 +4,6 @@ import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.group.Group;
 import aad.message.app.group.GroupDTO;
-import aad.message.app.group_user.GroupUser;
 import aad.message.app.group_user.GroupUserRepository;
 import aad.message.app.jwt.JwtUtils;
 import aad.message.app.returns.Responses;
@@ -50,7 +49,7 @@ public class UserController {
 
         List<Group> groups = groupUserRepository.findByUserId(userId)
                 .stream()
-                .map(GroupUser::getGroup)
+                .map(groupUser -> groupUser.group)
                 .toList();
 
         List<GroupDTO> groupDTOs = groups.stream()
