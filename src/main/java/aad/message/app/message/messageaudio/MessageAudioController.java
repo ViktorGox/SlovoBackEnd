@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/message/audio")
+@RequestMapping("/messages/audio")
 public class MessageAudioController {
     private final MessageRepository messageRepository;
     private final MessageAudioRepository messageAudioRepository;
