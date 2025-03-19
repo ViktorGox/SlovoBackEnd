@@ -25,10 +25,9 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody AuthPostDTO dto) {
-        // TODO: Check the body contains the required parts.
         Optional<User> user = repository.findByUsername(dto.username);
 
-        if (user.isEmpty()) {
+        if (user.isEmpty() || dto.password == null || dto.password.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Collections.singletonMap("error", "Invalid username or password"));
         }
