@@ -22,8 +22,6 @@ public class GroupAccessInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        // TODO: Doesn't handle post message/audio and message/text because they have group ids in the body.
-
         Pattern pattern = Pattern.compile("^/(groups|messages)/(\\d+)");
         Matcher matcher = pattern.matcher(request.getRequestURI());
 
@@ -34,6 +32,8 @@ public class GroupAccessInterceptor implements HandlerInterceptor {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are not a member of this group.");
                 return false;
             }
+            // TODO: Return false by default unless confirmed? If it doesnt find id its gucci, which
+            //  might not necessarily be gucci.
         }
 
         return true;
