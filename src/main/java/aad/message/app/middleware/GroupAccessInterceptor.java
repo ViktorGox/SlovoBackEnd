@@ -21,11 +21,11 @@ public class GroupAccessInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Pattern pattern = Pattern.compile("^/groups/(\\d+)");
+        Pattern pattern = Pattern.compile("^/(groups|messages)/(\\d+)");
         Matcher matcher = pattern.matcher(request.getRequestURI());
 
         if (matcher.find()) {
-            Long groupId = Long.parseLong(matcher.group(1));
+            Long groupId = Long.parseLong(matcher.group(2));
 
             if (!groupUserRepository.existsByUserIdAndGroupId(userId, groupId)) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are not a member of this group.");
