@@ -20,7 +20,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/login");
 
         registry.addInterceptor(groupAccessInterceptor)
-                .addPathPatterns("/groups/{id}", "/groups/{id}/users")
+                .addPathPatterns("/groups/{id}", "/groups/{id}/users", "/{id}/name")
                 .excludePathPatterns("/login");
     }
 }

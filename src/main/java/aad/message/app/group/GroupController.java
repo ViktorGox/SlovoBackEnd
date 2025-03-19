@@ -5,7 +5,6 @@ import aad.message.app.group_user.GroupUser;
 import aad.message.app.user.UserDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,7 +42,7 @@ public class GroupController {
                 return Responses.notFound("No users found for this group.");
             }
             List<UserDTO> userDTOs = usersInGroup.stream()
-                    .map(groupUser -> new UserDTO(groupUser.getUser()))
+                    .map(groupUser -> new UserDTO(groupUser.user))
                     .collect(Collectors.toList());
             return ResponseEntity.ok(userDTOs);
         } catch (Exception e) {
@@ -63,6 +62,30 @@ public class GroupController {
             return ResponseEntity.ok(GroupDTO.fromEntity(createdGroup));
         } catch (Exception e) {
             return Responses.internalError("An error occurred while creating the group.");
+        }
+    }
+
+    @PutMapping("/{id}/name")
+    public ResponseEntity<?> updateGroupName(@PathVariable Long id, @RequestBody String newName) {
+        try {
+            Optional<Group> groupOptional = groupService.getGroupById(id);
+            if (groupOptional.isEmpty()) {
+                return Responses.notFound("Group not found.");
+            }
+
+            Group group = groupOptional.get();
+
+            if (newName == null || newName.trim().isEmpty()) {
+                return Responses.error("Group name cannot be empty.");
+            }
+
+            group.name = newName;
+
+            groupService.updateGroup(group);
+
+            return ResponseEntity.ok(GroupDTO.fromEntity(group));
+        } catch (Exception e) {
+            return Responses.internalError("An error occurred while updating the group name.");
         }
     }
 }
