@@ -1,18 +1,21 @@
 package aad.message.app.message.messagetext;
 
 import aad.message.app.group.GroupRepository;
+import aad.message.app.group_user.GroupUserRepository;
 import aad.message.app.message.Message;
 import aad.message.app.message.MessageRepository;
 import aad.message.app.message.MessageType;
+import aad.message.app.middleware.GroupAccessInterceptor;
 import aad.message.app.returns.Responses;
 import aad.message.app.user.User;
 import aad.message.app.user.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -22,20 +25,25 @@ public class MessageTextController {
     private final UserRepository userRepository;
     private final MessageTextRepository messageTextRepository;
     private final GroupRepository groupRepository;
+    private final GroupUserRepository groupUserRepository;
 
     public MessageTextController(UserRepository userRepository,
                                  MessageRepository messageRepository,
                                  MessageTextRepository messageTextRepository,
-                                 GroupRepository groupRepository) {
+                                 GroupRepository groupRepository, GroupUserRepository groupUserRepository) {
         this.userRepository = userRepository;
         this.messageRepository = messageRepository;
         this.messageTextRepository = messageTextRepository;
         this.groupRepository = groupRepository;
+        this.groupUserRepository = groupUserRepository;
     }
 
     @PostMapping
     public ResponseEntity<?> postMessage(@RequestBody MessageTextPostDTO dto) {
         Long userId = getUserId();
+        if(!GroupAccessInterceptor.hasAccessToGroup(groupUserRepository, List.of(dto.groupId))) {
+            return Responses.unauthorized();
+        }
 
         Optional<User> user = userRepository.findById(userId);
         if(user.isEmpty()) return Responses.impossibleUserNotFound(userId);

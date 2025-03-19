@@ -3,12 +3,14 @@ package aad.message.app.message.messageaudio;
 import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.group.GroupRepository;
+import aad.message.app.group_user.GroupUserRepository;
 import aad.message.app.message.Message;
 import aad.message.app.message.MessageRepository;
 import aad.message.app.message.MessageType;
 import aad.message.app.message.messageadiogroup.MessageAudioGroup;
 import aad.message.app.message.messageadiogroup.MessageAudioGroupRepository;
 import aad.message.app.message.messageaudio.transcription.TranscriptionService;
+import aad.message.app.middleware.GroupAccessInterceptor;
 import aad.message.app.returns.Responses;
 import aad.message.app.user.User;
 import aad.message.app.user.UserRepository;
@@ -34,6 +36,7 @@ public class MessageAudioController {
     private final MessageAudioGroupRepository messageAudioGroupRepository;
     private final GroupRepository groupRepository;
     private final TranscriptionService transcriptionService;
+    private final GroupUserRepository groupUserRepository;
 
     public MessageAudioController(UserRepository userRepository,
                                   FileUploadHandler fileUploadHandler,
@@ -41,7 +44,7 @@ public class MessageAudioController {
                                   MessageRepository messageRepository,
                                   MessageAudioGroupRepository messageAudioGroupRepository,
                                   GroupRepository groupRepository,
-                                  TranscriptionService transcriptionService) {
+                                  TranscriptionService transcriptionService, GroupUserRepository groupUserRepository) {
         this.messageAudioRepository = messageAudioRepository;
         this.fileUploadHandler = fileUploadHandler;
         this.userRepository = userRepository;
@@ -49,12 +52,16 @@ public class MessageAudioController {
         this.messageAudioGroupRepository = messageAudioGroupRepository;
         this.groupRepository = groupRepository;
         this.transcriptionService = transcriptionService;
+        this.groupUserRepository = groupUserRepository;
     }
 
     @PostMapping
     public ResponseEntity<?> postMessage(@RequestPart(value = "file") MultipartFile file,
                                          @RequestPart(value = "dto") MessageAudioPostDTO dto) throws IOException {
         Long userId = getUserId();
+        if(!GroupAccessInterceptor.hasAccessToGroup(groupUserRepository, dto.groupIds)) {
+            return Responses.unauthorized();
+        }
 
         Optional<User> user = userRepository.findById(userId);
         if(user.isEmpty()) return Responses.impossibleUserNotFound(userId);
