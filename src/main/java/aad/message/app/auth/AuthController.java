@@ -17,10 +17,12 @@ import java.util.Optional;
 @RestController
 public class AuthController {
 
+    private final JwtUtils jwtUtils;
     private final UserRepository repository;
 
-    public AuthController(UserRepository repository) {
+    public AuthController(UserRepository repository, JwtUtils jwtUtils) {
         this.repository = repository;
+        this.jwtUtils = jwtUtils;
     }
 
     @PostMapping("/login")
@@ -38,6 +40,6 @@ public class AuthController {
                     .body(Collections.singletonMap("error", "Invalid username or password"));
         }
 
-        return ResponseEntity.ok().body(Collections.singletonMap("token", JwtUtils.generateToken(user.get().id)));
+        return ResponseEntity.ok().body(Collections.singletonMap("token", jwtUtils.generateToken(user.get().id)));
     }
 }

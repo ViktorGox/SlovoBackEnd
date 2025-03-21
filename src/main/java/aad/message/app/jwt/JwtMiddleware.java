@@ -17,11 +17,13 @@ import java.util.List;
 import java.util.Optional;
 
 public class JwtMiddleware extends OncePerRequestFilter {
-    @Autowired
-    private ApplicationContext context;
+    private final ApplicationContext context;
+    private final JwtUtils jwtUtils;
 
-    public JwtMiddleware(ApplicationContext context) {
+    @Autowired
+    public JwtMiddleware(ApplicationContext context, JwtUtils jwtUtils) {
         this.context = context;
+        this.jwtUtils = jwtUtils;
     }
 
     @Override
@@ -35,7 +37,7 @@ public class JwtMiddleware extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
 
-            id = JwtUtils.validateTokenAndGetId(token);
+            id = jwtUtils.validateTokenAndGetId(token);
         }
 
         if (id != null && SecurityContextHolder.getContext().getAuthentication() == null) {

@@ -19,14 +19,16 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+    private final JwtUtils jwtUtils;
     private final UserRepository repository;
     private final ApplicationContext context;
     private final FileUploadHandler fileUploadHandler;
 
-    public UserController(UserRepository repository, ApplicationContext context, FileUploadHandler fileUploadHandler) {
+    public UserController(UserRepository repository, ApplicationContext context, FileUploadHandler fileUploadHandler, JwtUtils jwtUtils) {
         this.repository = repository;
         this.context = context;
         this.fileUploadHandler = fileUploadHandler;
+        this.jwtUtils = jwtUtils;
     }
 
     @GetMapping
@@ -60,7 +62,7 @@ public class UserController {
                                           //  method within an if check to not delete the default image
 
         User savedUser = repository.save(user);
-        return Responses.ok("token", JwtUtils.generateToken(savedUser.id));
+        return Responses.ok("token", jwtUtils.generateToken(savedUser.id));
     }
 
     // TODO: Didn't delete the old image once, couldn't replicate it afterwards though.
