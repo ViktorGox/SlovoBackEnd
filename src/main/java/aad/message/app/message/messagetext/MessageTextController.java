@@ -45,7 +45,7 @@ public class MessageTextController {
         if (!missingFields.isEmpty()) return Responses.incompleteBody(missingFields);
 
         Long userId = getUserId();
-        if(!GroupAccessInterceptor.hasAccessToGroup(groupUserRepository, List.of(dto.groupId))) {
+        if(GroupAccessInterceptor.isUnauthorizedForGroup(groupUserRepository, List.of(dto.groupId))) {
             return Responses.unauthorized();
         }
 

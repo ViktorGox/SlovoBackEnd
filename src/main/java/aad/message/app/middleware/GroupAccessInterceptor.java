@@ -27,25 +27,26 @@ public class GroupAccessInterceptor implements HandlerInterceptor {
         if (matcher.find()) {
             Long groupId = Long.parseLong(matcher.group(2));
 
-            if(!hasAccessToGroup(groupUserRepository, List.of(groupId))) {
+            if(isUnauthorizedForGroup(groupUserRepository, List.of(groupId))) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are not a member of this group.");
                 return false;
             }
-            // TODO: Return false by default unless confirmed? If it doesnt find id its gucci, which
-            //  might not necessarily be gucci.
+            else {
+                return true;
+            }
         }
-
-        return true;
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized request.");
+        return false;
     }
 
-    public static boolean hasAccessToGroup(GroupUserRepository groupUserRepository, List<Long> groupIds) {
+    public static boolean isUnauthorizedForGroup(GroupUserRepository groupUserRepository, List<Long> groupIds) {
         Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         for (Long id : groupIds) {
             if (!groupUserRepository.existsByUserIdAndGroupId(userId, id)) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 }

@@ -70,7 +70,7 @@ public class MessageAudioController {
         if (!missingFields.isEmpty()) return Responses.incompleteBody(missingFields);
 
         Long userId = getUserId();
-        if (!GroupAccessInterceptor.hasAccessToGroup(groupUserRepository, dto.groupIds)) {
+        if (GroupAccessInterceptor.isUnauthorizedForGroup(groupUserRepository, dto.groupIds)) {
             return Responses.unauthorized();
         }
 
