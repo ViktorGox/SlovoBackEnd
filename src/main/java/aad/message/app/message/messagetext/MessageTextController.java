@@ -44,7 +44,6 @@ public class MessageTextController {
         Collection<String> missingFields = MessageTextPostDTO.verify(dto);
         if (!missingFields.isEmpty()) return Responses.incompleteBody(missingFields);
 
-
         Long userId = getUserId();
         if(!GroupAccessInterceptor.hasAccessToGroup(groupUserRepository, List.of(dto.groupId))) {
             return Responses.unauthorized();
@@ -59,9 +58,7 @@ public class MessageTextController {
 
         if(dto.replyMessageId != null) {
             Optional<Message> reply = messageRepository.findMessageById(dto.replyMessageId);
-            if(reply.isPresent()) {
-                message.replyMessage = reply.get();
-            }
+            reply.ifPresent(value -> message.replyMessage = value);
         }
         message.messageType = MessageType.text;
         message.text = dto.text;

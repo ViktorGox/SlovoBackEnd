@@ -32,8 +32,6 @@ public class JwtMiddleware extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         Long id = null;
 
-        // TODO: if you do Bearer Bearer token, it crashes.
-
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
 
