@@ -9,12 +9,12 @@ import aad.message.app.middleware.GroupAccessInterceptor;
 import aad.message.app.returns.Responses;
 import aad.message.app.user.User;
 import aad.message.app.user.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,7 +39,12 @@ public class MessageTextController {
     }
 
     @PostMapping
-    public ResponseEntity<?> postMessage(@RequestBody MessageTextPostDTO dto) {
+    public ResponseEntity<?> postMessage(@RequestBody(required = false) MessageTextPostDTO dto) {
+        if(dto == null) return Responses.incompleteBody(List.of("MessageTextPostDTO"));
+        Collection<String> missingFields = MessageTextPostDTO.verify(dto);
+        if (!missingFields.isEmpty()) return Responses.incompleteBody(missingFields);
+
+
         Long userId = getUserId();
         if(!GroupAccessInterceptor.hasAccessToGroup(groupUserRepository, List.of(dto.groupId))) {
             return Responses.unauthorized();
