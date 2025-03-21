@@ -17,11 +17,15 @@ import aad.message.app.user.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -56,23 +60,30 @@ public class MessageAudioController {
     }
 
     @PostMapping
-    public ResponseEntity<?> postMessage(@RequestPart(value = "file") MultipartFile file,
-                                         @RequestPart(value = "dto") MessageAudioPostDTO dto) throws IOException {
+    public ResponseEntity<?> postMessage(@RequestPart(value = "file", required = false) MultipartFile file,
+                                         @RequestPart(value = "dto", required = false) MessageAudioPostDTO dto)
+            throws IOException {
+        if(dto == null) return Responses.incompleteBody(List.of("MessageAudioPostDTO"));
+        if(file == null || file.isEmpty()) return Responses.incompleteBody(List.of("File"));
+
+        Collection<String> missingFields = MessageAudioPostDTO.verify(dto);
+        if (!missingFields.isEmpty()) return Responses.incompleteBody(missingFields);
+
         Long userId = getUserId();
-        if(!GroupAccessInterceptor.hasAccessToGroup(groupUserRepository, dto.groupIds)) {
+        if (!GroupAccessInterceptor.hasAccessToGroup(groupUserRepository, dto.groupIds)) {
             return Responses.unauthorized();
         }
 
         Optional<User> user = userRepository.findById(userId);
-        if(user.isEmpty()) return Responses.impossibleUserNotFound(userId);
+        if (user.isEmpty()) return Responses.impossibleUserNotFound(userId);
 
         MessageAudio message = new MessageAudio();
         message.user = user.get();
         message.sentDate = LocalDateTime.now();
 
-        if(dto.replyMessageId != null) {
+        if (dto.replyMessageId != null) {
             Optional<Message> reply = messageRepository.findMessageById(dto.replyMessageId);
-            if(reply.isPresent()) {
+            if (reply.isPresent()) {
                 message.replyMessage = reply.get();
             }
         }
