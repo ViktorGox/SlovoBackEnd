@@ -2,6 +2,9 @@ package aad.message.app.user;
 
 import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
+import aad.message.app.group.Group;
+import aad.message.app.group.GroupDTO;
+import aad.message.app.group_user.GroupUserRepository;
 import aad.message.app.jwt.JwtUtils;
 import aad.message.app.returns.Responses;
 import jakarta.validation.Valid;
@@ -14,7 +17,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
@@ -23,12 +28,18 @@ public class UserController {
     private final UserRepository repository;
     private final ApplicationContext context;
     private final FileUploadHandler fileUploadHandler;
+    private final GroupUserRepository groupUserRepository;
 
-    public UserController(UserRepository repository, ApplicationContext context, FileUploadHandler fileUploadHandler, JwtUtils jwtUtils) {
+    public UserController(UserRepository repository,
+                          ApplicationContext context,
+                          FileUploadHandler fileUploadHandler,
+                          JwtUtils jwtUtils,
+                          GroupUserRepository groupUserRepository) {
         this.repository = repository;
         this.context = context;
         this.fileUploadHandler = fileUploadHandler;
         this.jwtUtils = jwtUtils;
+        this.groupUserRepository = groupUserRepository;
     }
 
     @GetMapping
@@ -36,6 +47,22 @@ public class UserController {
         return repository.findById(getUserId())
                 .map(user -> ResponseEntity.ok(new UserDTO(user)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/groups")
+    public ResponseEntity<?> getUserGroups() {
+        Long userId = getUserId();
+
+        List<Group> groups = groupUserRepository.findByUserId(userId)
+                .stream()
+                .map(groupUser -> groupUser.group)
+                .toList();
+
+        List<GroupDTO> groupDTOs = groups.stream()
+                .map(GroupDTO::fromEntity)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(groupDTOs);
     }
 
     @PostMapping

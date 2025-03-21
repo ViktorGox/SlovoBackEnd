@@ -26,8 +26,4 @@ public class GroupUser {
         this.group = group;
         this.user = user;
     }
-
-    public User getUser() {
-        return user;
-    }
 }

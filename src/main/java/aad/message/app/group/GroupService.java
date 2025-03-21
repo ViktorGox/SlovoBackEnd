@@ -49,4 +49,8 @@ public class GroupService {
         userGroup.group = group;
         groupUserRepository.save(userGroup);
     }
+
+    public Group updateGroup(Group group) {
+        return groupRepository.save(group);
+    }
 }
