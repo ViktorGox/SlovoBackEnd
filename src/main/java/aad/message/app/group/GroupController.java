@@ -66,7 +66,7 @@ public class GroupController {
     }
 
     @PutMapping("/{id}/name")
-    public ResponseEntity<?> updateGroupName(@PathVariable Long id, @RequestBody String newName) {
+    public ResponseEntity<?> updateGroupName(@PathVariable Long id, @RequestBody GroupNameUpdateDTO dto) {
         try {
             Optional<Group> groupOptional = groupService.getGroupById(id);
             if (groupOptional.isEmpty()) {
@@ -75,11 +75,11 @@ public class GroupController {
 
             Group group = groupOptional.get();
 
-            if (newName == null || newName.trim().isEmpty()) {
+            if (dto == null || dto.newName == null || dto.newName.trim().isEmpty()) {
                 return Responses.error("Group name cannot be empty.");
             }
 
-            group.name = newName;
+            group.name = dto.newName;
 
             groupService.updateGroup(group);
 
