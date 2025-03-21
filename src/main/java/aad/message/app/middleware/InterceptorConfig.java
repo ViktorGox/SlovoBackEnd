@@ -22,6 +22,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
         registry.addInterceptor(groupAccessInterceptor)
                 .addPathPatterns("/groups/{id}",
                         "/groups/{id}/users",
+                        "/messages/{id:\\d+}",
                         "/groups/{id}/name",
                         "/groups/{id}/image")
                 .excludePathPatterns("/login");
