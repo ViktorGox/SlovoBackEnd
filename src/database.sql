@@ -61,7 +61,6 @@ CREATE TABLE message_audio (
                                transcription TEXT NOT NULL
 );
 
--- TODO: On delete cascae?
 CREATE TABLE message_audio_group (
                                      message_audio_id INTEGER NOT NULL,
                                      group_id INTEGER NOT NULL,

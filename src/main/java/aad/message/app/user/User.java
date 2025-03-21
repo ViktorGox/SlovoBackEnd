@@ -1,8 +1,10 @@
 package aad.message.app.user;
 
+import aad.message.app.filetransfer.ImageContainer;
 import aad.message.app.group_user.GroupUser;
 import jakarta.persistence.*;
 
+import java.io.Serializable;
 import java.util.Set;
 
 /**
@@ -10,7 +12,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "\"user\"")
-public class User{
+public class User implements ImageContainer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
@@ -31,4 +33,14 @@ public class User{
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<GroupUser> groupUsers;
+
+    @Override
+    public String getImageURL() {
+        return imageUrl;
+    }
+
+    @Override
+    public void SetImageURL(String imageURL) {
+        imageUrl = imageURL;
+    }
 }

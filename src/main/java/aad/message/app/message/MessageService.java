@@ -12,7 +12,6 @@ import java.util.List;
 
 @Service
 public class MessageService {
-    // TODO: Add text message equivalent stuff.
     private final MessageAudioRepository messageAudioRepository;
     private final MessageTextRepository messageTextRepository;
 

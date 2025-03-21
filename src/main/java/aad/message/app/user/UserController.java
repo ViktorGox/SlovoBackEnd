@@ -24,15 +24,21 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+    private final JwtUtils jwtUtils;
     private final UserRepository repository;
     private final ApplicationContext context;
     private final FileUploadHandler fileUploadHandler;
     private final GroupUserRepository groupUserRepository;
 
-    public UserController(UserRepository repository, ApplicationContext context, FileUploadHandler fileUploadHandler, GroupUserRepository groupUserRepository) {
+    public UserController(UserRepository repository,
+                          ApplicationContext context,
+                          FileUploadHandler fileUploadHandler,
+                          JwtUtils jwtUtils,
+                          GroupUserRepository groupUserRepository) {
         this.repository = repository;
         this.context = context;
         this.fileUploadHandler = fileUploadHandler;
+        this.jwtUtils = jwtUtils;
         this.groupUserRepository = groupUserRepository;
     }
 
@@ -83,11 +89,10 @@ public class UserController {
                                           //  method within an if check to not delete the default image
 
         User savedUser = repository.save(user);
-        return Responses.ok("token", JwtUtils.generateToken(savedUser.id));
+        return Responses.ok("token", jwtUtils.generateToken(savedUser.id));
     }
 
     // TODO: Didn't delete the old image once, couldn't replicate it afterwards though.
-    // TODO: Handle providing duplicate email, check and return already in use, now it does 401
     @PutMapping
     public ResponseEntity<?> update(@RequestPart(value = "file", required = false) MultipartFile file,
                                     @RequestPart(value = "dto", required = false) UserUpdateDTO dto) {
@@ -101,19 +106,13 @@ public class UserController {
             ResponseEntity<?> fileUploadResult = fileUploadHandler.uploadFile(file, FileType.PROFILE_PICTURE, userId);
             if (fileUploadResult.getStatusCode() != HttpStatus.OK) return fileUploadResult;
 
-            String fileName = fileUploadHandler.okFileName(fileUploadResult);
-            if(!user.get().imageUrl.equals("pf_default.png")) {
-                // do not remove the default image.
-                fileUploadHandler.removeFile(user.get().imageUrl);
-            }
-            user.get().imageUrl = fileName;
+            fileUploadHandler.handleOkResponse(fileUploadResult, user.get(), FileType.PROFILE_PICTURE);
         }
 
         // Only change data if a data has been sent, as it is not mandatory.
         if(dto != null) {
             if (dto.firstName != null) user.get().firstName = dto.firstName;
             if (dto.lastName != null) user.get().lastName = dto.lastName;
-            if (dto.email != null) user.get().email = dto.email;
         }
 
         repository.save(user.get());

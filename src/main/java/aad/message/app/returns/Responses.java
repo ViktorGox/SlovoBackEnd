@@ -31,6 +31,10 @@ public abstract class Responses {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.singletonMap("error", value));
     }
 
+    public static ResponseEntity<?> unauthorized() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
     /**
      * Method intended to be called to stop a request by the point in which the user is requested from the
      * UserRepository but has failed to be found.

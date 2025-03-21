@@ -1,6 +1,7 @@
 package aad.message.app;
 
 import aad.message.app.jwt.JwtMiddleware;
+import aad.message.app.jwt.JwtUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,9 +17,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig {
     private final ApplicationContext context;
+    private final JwtUtils jwtUtils;
 
-    public SecurityConfig(ApplicationContext context) {
+    public SecurityConfig(ApplicationContext context, JwtUtils jwtUtils) {
         this.context = context;
+        this.jwtUtils = jwtUtils;
     }
 
     @Bean
@@ -32,13 +35,13 @@ public class SecurityConfig {
                         .permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(new JwtMiddleware(context), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtMiddleware(context, jwtUtils), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
     @Bean
     public JwtMiddleware jwtMiddleware() {
-        return new JwtMiddleware(context);
+        return new JwtMiddleware(context, jwtUtils);
     }
 
     @Bean

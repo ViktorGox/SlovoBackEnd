@@ -1,11 +1,17 @@
 package aad.message.app.group;
 
+import aad.message.app.filetransfer.FileType;
+import aad.message.app.filetransfer.FileUploadHandler;
+import aad.message.app.message.messageaudio.MessageAudioPostDTO;
 import aad.message.app.returns.Responses;
 import aad.message.app.group_user.GroupUser;
 import aad.message.app.user.UserDTO;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,9 +22,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/groups")
 public class GroupController {
     private final GroupService groupService;
+    private final FileUploadHandler fileUploadHandler;
 
-    public GroupController(GroupService groupService) {
+    public GroupController(GroupService groupService, FileUploadHandler fileUploadHandler) {
         this.groupService = groupService;
+        this.fileUploadHandler = fileUploadHandler;
     }
 
     @GetMapping("/{id}")
@@ -66,7 +74,7 @@ public class GroupController {
     }
 
     @PutMapping("/{id}/name")
-    public ResponseEntity<?> updateGroupName(@PathVariable Long id, @RequestBody String newName) {
+    public ResponseEntity<?> updateGroupName(@PathVariable Long id, @RequestBody GroupNameUpdateDTO dto) {
         try {
             Optional<Group> groupOptional = groupService.getGroupById(id);
             if (groupOptional.isEmpty()) {
@@ -75,11 +83,11 @@ public class GroupController {
 
             Group group = groupOptional.get();
 
-            if (newName == null || newName.trim().isEmpty()) {
+            if (dto == null || dto.newName == null || dto.newName.trim().isEmpty()) {
                 return Responses.error("Group name cannot be empty.");
             }
 
-            group.name = newName;
+            group.name = dto.newName;
 
             groupService.updateGroup(group);
 
@@ -90,7 +98,8 @@ public class GroupController {
     }
 
     @PutMapping("/{id}/image")
-    public ResponseEntity<?> updateGroupImage(@PathVariable Long id, @RequestBody String newImageUrl) {
+    public ResponseEntity<?> updateGroupImage(@PathVariable Long id,
+                                              @RequestPart(value = "file", required = false) MultipartFile file) {
         try {
             Optional<Group> groupOptional = groupService.getGroupById(id);
             if (groupOptional.isEmpty()) {
@@ -99,11 +108,15 @@ public class GroupController {
 
             Group group = groupOptional.get();
 
-            if (newImageUrl == null || newImageUrl.trim().isEmpty()) {
-                return Responses.error("Image URL cannot be empty.");
-            }
+            ResponseEntity<?> fileUploadResult = fileUploadHandler.uploadFile(file, FileType.GROUP_PICTURE, group.id);
+            if (fileUploadResult.getStatusCode() != HttpStatus.OK) return fileUploadResult;
 
-            group.imageUrl = newImageUrl;
+            String fileName = fileUploadHandler.okFileName(fileUploadResult);
+            if(!group.imageUrl.equals("gp_default.png")) {
+                // do not remove the default image.
+                fileUploadHandler.removeFile(group.imageUrl);
+            }
+            group.imageUrl = fileName;
 
             groupService.updateGroup(group);
 

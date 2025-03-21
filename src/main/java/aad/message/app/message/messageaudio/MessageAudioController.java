@@ -3,28 +3,35 @@ package aad.message.app.message.messageaudio;
 import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.group.GroupRepository;
+import aad.message.app.group_user.GroupUserRepository;
 import aad.message.app.message.Message;
 import aad.message.app.message.MessageRepository;
+import aad.message.app.message.MessageType;
 import aad.message.app.message.messageadiogroup.MessageAudioGroup;
 import aad.message.app.message.messageadiogroup.MessageAudioGroupRepository;
 import aad.message.app.message.messageaudio.transcription.TranscriptionService;
+import aad.message.app.middleware.GroupAccessInterceptor;
 import aad.message.app.returns.Responses;
 import aad.message.app.user.User;
 import aad.message.app.user.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/message/audio")
+@RequestMapping("/messages/audio")
 public class MessageAudioController {
     private final MessageRepository messageRepository;
     private final MessageAudioRepository messageAudioRepository;
@@ -33,6 +40,7 @@ public class MessageAudioController {
     private final MessageAudioGroupRepository messageAudioGroupRepository;
     private final GroupRepository groupRepository;
     private final TranscriptionService transcriptionService;
+    private final GroupUserRepository groupUserRepository;
 
     public MessageAudioController(UserRepository userRepository,
                                   FileUploadHandler fileUploadHandler,
@@ -40,7 +48,7 @@ public class MessageAudioController {
                                   MessageRepository messageRepository,
                                   MessageAudioGroupRepository messageAudioGroupRepository,
                                   GroupRepository groupRepository,
-                                  TranscriptionService transcriptionService) {
+                                  TranscriptionService transcriptionService, GroupUserRepository groupUserRepository) {
         this.messageAudioRepository = messageAudioRepository;
         this.fileUploadHandler = fileUploadHandler;
         this.userRepository = userRepository;
@@ -48,27 +56,38 @@ public class MessageAudioController {
         this.messageAudioGroupRepository = messageAudioGroupRepository;
         this.groupRepository = groupRepository;
         this.transcriptionService = transcriptionService;
+        this.groupUserRepository = groupUserRepository;
     }
 
     @PostMapping
-    public ResponseEntity<?> postMessage(@RequestPart(value = "file") MultipartFile file,
-                                         @RequestPart(value = "dto") MessageAudioPostDTO dto) throws IOException {
+    public ResponseEntity<?> postMessage(@RequestPart(value = "file", required = false) MultipartFile file,
+                                         @RequestPart(value = "dto", required = false) MessageAudioPostDTO dto)
+            throws IOException {
+        if(dto == null) return Responses.incompleteBody(List.of("MessageAudioPostDTO"));
+        if(file == null || file.isEmpty()) return Responses.incompleteBody(List.of("File"));
+
+        Collection<String> missingFields = MessageAudioPostDTO.verify(dto);
+        if (!missingFields.isEmpty()) return Responses.incompleteBody(missingFields);
+
         Long userId = getUserId();
-        // TODO: Check whether the user has access to the group.
+        if (GroupAccessInterceptor.isUnauthorizedForGroup(groupUserRepository, dto.groupIds)) {
+            return Responses.unauthorized();
+        }
 
         Optional<User> user = userRepository.findById(userId);
-        if(user.isEmpty()) return Responses.impossibleUserNotFound(userId);
+        if (user.isEmpty()) return Responses.impossibleUserNotFound(userId);
 
         MessageAudio message = new MessageAudio();
         message.user = user.get();
         message.sentDate = LocalDateTime.now();
 
-        if(dto.replyMessageId != null) {
+        if (dto.replyMessageId != null) {
             Optional<Message> reply = messageRepository.findMessageById(dto.replyMessageId);
-            if(reply.isPresent()) {
+            if (reply.isPresent()) {
                 message.replyMessage = reply.get();
             }
         }
+        message.messageType = MessageType.audio;
         message.audioUrl = "";
         message.transcription = "";
 
@@ -98,11 +117,6 @@ public class MessageAudioController {
         messageAudioGroupRepository.saveAll(messageAudioGroups);
     }
 
-    /**
-     * Simple method to remove repetitive long line copies and pastes.
-     *
-     * @return the userId from the JWT token.
-     */
     private Long getUserId() {
         return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
