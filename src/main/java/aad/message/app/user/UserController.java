@@ -106,19 +106,13 @@ public class UserController {
             ResponseEntity<?> fileUploadResult = fileUploadHandler.uploadFile(file, FileType.PROFILE_PICTURE, userId);
             if (fileUploadResult.getStatusCode() != HttpStatus.OK) return fileUploadResult;
 
-            String fileName = fileUploadHandler.okFileName(fileUploadResult);
-            if(!user.get().imageUrl.equals("pf_default.png")) {
-                // do not remove the default image.
-                fileUploadHandler.removeFile(user.get().imageUrl);
-            }
-            user.get().imageUrl = fileName;
+            fileUploadHandler.handleOkResponse(fileUploadResult, user.get(), FileType.PROFILE_PICTURE);
         }
 
         // Only change data if a data has been sent, as it is not mandatory.
         if(dto != null) {
             if (dto.firstName != null) user.get().firstName = dto.firstName;
             if (dto.lastName != null) user.get().lastName = dto.lastName;
-            if (dto.email != null) user.get().email = dto.email;
         }
 
         repository.save(user.get());

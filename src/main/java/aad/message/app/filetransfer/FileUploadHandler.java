@@ -8,7 +8,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -45,6 +48,7 @@ public class FileUploadHandler {
     /**
      * Must be provided the return of the uploadFile method when it's .ok.
      * Made to remove some repetitive lines.
+     *
      * @param response The return of the uploadFile method when it's .ok
      * @return the file name or "" if the return was not ok.
      */
@@ -74,17 +78,26 @@ public class FileUploadHandler {
         }
     }
 
+    public void handleOkResponse(ResponseEntity<?> fileUploadResult, ImageContainer imageContainer, FileType fileType) {
+        String fileName = okFileName(fileUploadResult);
+        if (!imageContainer.getImageURL().equals(fileType.getShortName() + "_default.png")) {
+            // do not remove the default image.
+            removeFile(imageContainer.getImageURL());
+        }
+        imageContainer.SetImageURL(fileName);
+    }
+
     private ResponseEntity<?> isFileValid(MultipartFile file, FileType fileType, String fileExtension) {
         switch (fileType) {
             case FileType.MESSAGE_AUDIO -> {
                 List<String> allowedExtensions = List.of("mp3", "wav");
-                if(!isValidAudioMimeType(file)) return Responses.error("Invalid file type");
-                if(!allowedExtensions.contains(fileExtension)) return Responses.error("Invalid file extension");
+                if (!isValidAudioMimeType(file)) return Responses.error("Invalid file type");
+                if (!allowedExtensions.contains(fileExtension)) return Responses.error("Invalid file extension");
             }
             case FileType.PROFILE_PICTURE -> {
                 List<String> allowedExtensions = List.of("png", "jpeg", "jpg");
-                if(!isValidImageMimeType(file)) return Responses.error("Invalid file type");
-                if(!allowedExtensions.contains(fileExtension)) return Responses.error("Invalid file extension");
+                if (!isValidImageMimeType(file)) return Responses.error("Invalid file type");
+                if (!allowedExtensions.contains(fileExtension)) return Responses.error("Invalid file extension");
             }
         }
         return ResponseEntity.ok().build();
