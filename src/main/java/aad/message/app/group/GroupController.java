@@ -194,4 +194,27 @@ public class GroupController {
             return Responses.internalError("An error occurred while updating the user role.");
         }
     }
+
+    @DeleteMapping("/{group_id}/{user_id}")
+    public ResponseEntity<?> removeUserFromGroup(@PathVariable("group_id") Long groupId,
+                                                 @PathVariable("user_id") Long userId) {
+        try {
+            Optional<Group> groupOptional = groupService.getGroupById(groupId);
+            if (groupOptional.isEmpty()) {
+                return Responses.notFound("Group not found.");
+            }
+
+            Optional<GroupUserRole> groupUserRoleOptional = groupUserRoleRepository.findByUserIdAndGroupId(userId, groupId);
+            if (groupUserRoleOptional.isEmpty()) {
+                return Responses.notFound("User not found in the group.");
+            }
+
+            groupUserRoleRepository.delete(groupUserRoleOptional.get());
+
+            return ResponseEntity.ok("User removed from the group successfully.");
+
+        } catch (Exception e) {
+            return Responses.internalError("An error occurred while removing the user from the group.");
+        }
+    }
 }
