@@ -63,6 +63,7 @@ public class GroupService {
         GroupUserRole groupUserRole = new GroupUserRole();
         groupUserRole.group = groupRepository.findById(groupId).orElseThrow();
         groupUserRole.user = userRepository.findById(userId).orElseThrow();
+        groupUserRole.role = roleRepository.findByName("User").orElseThrow();
 
         groupUserRoleRepository.save(groupUserRole);
     }
