@@ -43,11 +43,20 @@ public class GroupService {
         return groupUserRepository.findByGroupId(groupId);
     }
 
-    public void addUserToGroup(User user, Group group) {
-        GroupUser userGroup = new GroupUser();
-        userGroup.user = user;
-        userGroup.group = group;
-        groupUserRepository.save(userGroup);
+    public boolean doesUserExist(Long userId) {
+        return userRepository.existsById(userId);
+    }
+
+    public boolean isUserInGroup(Long groupId, Long userId) {
+        return groupUserRepository.existsByGroupIdAndUserId(groupId, userId);
+    }
+
+    public void addUserToGroup(Long groupId, Long userId) {
+        GroupUser groupUser = new GroupUser();
+        groupUser.group = groupRepository.findById(groupId).orElseThrow();
+        groupUser.user = userRepository.findById(userId).orElseThrow();
+
+        groupUserRepository.save(groupUser);
     }
 
     public Group updateGroup(Group group) {

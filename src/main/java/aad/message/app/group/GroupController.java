@@ -2,12 +2,10 @@ package aad.message.app.group;
 
 import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
-import aad.message.app.message.messageaudio.MessageAudioPostDTO;
 import aad.message.app.returns.Responses;
 import aad.message.app.group_user.GroupUser;
 import aad.message.app.user.UserDTO;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -70,6 +68,32 @@ public class GroupController {
             return ResponseEntity.ok(GroupDTO.fromEntity(createdGroup));
         } catch (Exception e) {
             return Responses.internalError("An error occurred while creating the group.");
+        }
+    }
+
+    @PostMapping("/{groupId}/users/{userId}")
+    public ResponseEntity<?> addUserToGroup(@PathVariable Long groupId, @PathVariable Long userId) {
+        try {
+            Optional<Group> groupOptional = groupService.getGroupById(groupId);
+            if (groupOptional.isEmpty()) {
+                return Responses.notFound("Group not found.");
+            }
+
+            boolean userExists = groupService.doesUserExist(userId);
+            if (!userExists) {
+                return Responses.notFound("User not found.");
+            }
+
+            boolean alreadyInGroup = groupService.isUserInGroup(groupId, userId);
+            if (alreadyInGroup) {
+                return Responses.error("User is already in the group.");
+            }
+
+            groupService.addUserToGroup(groupId, userId);
+
+            return ResponseEntity.ok().body("User added to the group successfully.");
+        } catch (Exception e) {
+            return Responses.internalError("An error occurred while adding the user to the group.");
         }
     }
 
