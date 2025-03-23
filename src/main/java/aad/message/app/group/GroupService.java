@@ -1,7 +1,7 @@
 package aad.message.app.group;
 
-import aad.message.app.group_user.GroupUserRole;
-import aad.message.app.group_user.GroupUserRoleRepository;
+import aad.message.app.group_user_role.GroupUserRole;
+import aad.message.app.group_user_role.GroupUserRoleRepository;
 import aad.message.app.role.Role;
 import aad.message.app.role.RoleRepository;
 import aad.message.app.user.User;

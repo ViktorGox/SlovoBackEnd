@@ -8,9 +8,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class InterceptorConfig implements WebMvcConfigurer {
 
     private final GroupAccessInterceptor groupAccessInterceptor;
+    private final AdminOwnerInterceptor adminOwnerInterceptor;
 
-    public InterceptorConfig(GroupAccessInterceptor groupAccessInterceptor) {
+    public InterceptorConfig(GroupAccessInterceptor groupAccessInterceptor, AdminOwnerInterceptor adminOwnerInterceptor) {
         this.groupAccessInterceptor = groupAccessInterceptor;
+        this.adminOwnerInterceptor = adminOwnerInterceptor;
     }
 
     @Override
@@ -25,6 +27,9 @@ public class InterceptorConfig implements WebMvcConfigurer {
                         "/messages/{id:\\d+}",
                         "/groups/{id}/name",
                         "/groups/{id}/image")
+                .excludePathPatterns("/login");
+        registry.addInterceptor(adminOwnerInterceptor)
+                .addPathPatterns("")
                 .excludePathPatterns("/login");
     }
 }

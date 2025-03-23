@@ -3,7 +3,7 @@ package aad.message.app.group;
 import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.returns.Responses;
-import aad.message.app.group_user.GroupUserRole;
+import aad.message.app.group_user_role.GroupUserRole;
 import aad.message.app.user.UserDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

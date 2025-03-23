@@ -1,7 +1,7 @@
 package aad.message.app.group;
 
 import aad.message.app.filetransfer.ImageContainer;
-import aad.message.app.group_user.GroupUserRole;
+import aad.message.app.group_user_role.GroupUserRole;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
