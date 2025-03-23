@@ -28,12 +28,22 @@ public class InterceptorConfig implements WebMvcConfigurer {
                         "/messages/{id:\\d+}")
                 .excludePathPatterns("/login", "/groups");
         registry.addInterceptor(adminOwnerInterceptor)
-                .addPathPatterns("groups/{group_id}/{user_id}/{role_id}",
+                .addPathPatterns("/groups/{group_id}/{user_id}/{role_id}",
                         "/groups/{group_id}/{user_id}")
-                .excludePathPatterns("/login");
+                .excludePathPatterns("/login",
+                        "/groups/{id}/users",
+                        "/groups/{groupId}/users/{userId}",
+                        "/groups/{id}/name",
+                        "/groups/{id}/image",
+                        "/groups/{group_id}/self");
         registry.addInterceptor(adminCannotModifyOwnerInterceptor)
-                .addPathPatterns("groups/{group_id}/{user_id}/{role_id}",
+                .addPathPatterns("/groups/{group_id}/{user_id}/{role_id}",
                         "/groups/{group_id}/{user_id}")
-                .excludePathPatterns("/login");
+                .excludePathPatterns("/login",
+                        "/groups/{id}/users",
+                        "/groups/{groupId}/users/{userId}",
+                        "/groups/{id}/name",
+                        "/groups/{id}/image",
+                        "/groups/{group_id}/self");
     }
 }
