@@ -9,10 +9,12 @@ public class InterceptorConfig implements WebMvcConfigurer {
 
     private final GroupAccessInterceptor groupAccessInterceptor;
     private final AdminOwnerInterceptor adminOwnerInterceptor;
+    private final AdminCannotModifyOwnerInterceptor adminCannotModifyOwnerInterceptor;
 
-    public InterceptorConfig(GroupAccessInterceptor groupAccessInterceptor, AdminOwnerInterceptor adminOwnerInterceptor) {
+    public InterceptorConfig(GroupAccessInterceptor groupAccessInterceptor, AdminOwnerInterceptor adminOwnerInterceptor, AdminCannotModifyOwnerInterceptor adminCannotModifyOwnerInterceptor) {
         this.groupAccessInterceptor = groupAccessInterceptor;
         this.adminOwnerInterceptor = adminOwnerInterceptor;
+        this.adminCannotModifyOwnerInterceptor = adminCannotModifyOwnerInterceptor;
     }
 
     @Override
@@ -22,14 +24,16 @@ public class InterceptorConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/login");
 
         registry.addInterceptor(groupAccessInterceptor)
-                .addPathPatterns("/groups/{id}",
-                        "/groups/{id}/users",
-                        "/messages/{id:\\d+}",
-                        "/groups/{id}/name",
-                        "/groups/{id}/image")
-                .excludePathPatterns("/login");
+                .addPathPatterns("/groups/**",
+                        "/messages/{id:\\d+}")
+                .excludePathPatterns("/login", "/groups");
         registry.addInterceptor(adminOwnerInterceptor)
-                .addPathPatterns("")
+                .addPathPatterns("groups/{group_id}/{user_id}/{role_id}",
+                        "/groups/{group_id}/{user_id}")
+                .excludePathPatterns("/login");
+        registry.addInterceptor(adminCannotModifyOwnerInterceptor)
+                .addPathPatterns("groups/{group_id}/{user_id}/{role_id}",
+                        "/groups/{group_id}/{user_id}")
                 .excludePathPatterns("/login");
     }
 }

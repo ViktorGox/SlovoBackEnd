@@ -219,7 +219,7 @@ public class GroupController {
         }
     }
 
-    @DeleteMapping("/leave/{group_id}")
+    @DeleteMapping("/self/{group_id}")
     public ResponseEntity<?> removeSelfFromGroup(@PathVariable("group_id") Long groupId) {
         try {
             Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
