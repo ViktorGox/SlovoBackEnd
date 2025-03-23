@@ -4,7 +4,7 @@ import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.group.Group;
 import aad.message.app.group.GroupDTO;
-import aad.message.app.group_user.GroupUserRoleRepository;
+import aad.message.app.group_user_role.GroupUserRoleRepository;
 import aad.message.app.jwt.JwtUtils;
 import aad.message.app.returns.Responses;
 import jakarta.validation.Valid;

@@ -2,12 +2,16 @@ package aad.message.app.group;
 
 import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
+import aad.message.app.group_user_role.GroupUserRoleRepository;
 import aad.message.app.returns.Responses;
-import aad.message.app.group_user.GroupUserRole;
+import aad.message.app.group_user_role.GroupUserRole;
+import aad.message.app.role.Role;
+import aad.message.app.role.RoleService;
 import aad.message.app.user.UserDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,10 +25,14 @@ import java.util.stream.Collectors;
 public class GroupController {
     private final GroupService groupService;
     private final FileUploadHandler fileUploadHandler;
+    private final GroupUserRoleRepository groupUserRoleRepository;
+    private final RoleService roleService;
 
-    public GroupController(GroupService groupService, FileUploadHandler fileUploadHandler) {
+    public GroupController(GroupService groupService, FileUploadHandler fileUploadHandler, GroupUserRoleRepository groupUserRoleRepository, RoleService roleService) {
         this.groupService = groupService;
         this.fileUploadHandler = fileUploadHandler;
+        this.groupUserRoleRepository = groupUserRoleRepository;
+        this.roleService = roleService;
     }
 
     @GetMapping("/{id}")
@@ -147,6 +155,110 @@ public class GroupController {
             return ResponseEntity.ok(GroupDTO.fromEntity(group));
         } catch (Exception e) {
             return Responses.internalError("An error occurred while updating the image URL.");
+        }
+    }
+
+    @PutMapping("/{group_id}/{user_id}/{role_id}")
+    public ResponseEntity<?> updateUserRole(@PathVariable("group_id") Long groupId,
+                                            @PathVariable("user_id") Long userId,
+                                            @PathVariable("role_id") Long roleId) {
+        try {
+            Optional<Group> groupOptional = groupService.getGroupById(groupId);
+            if (groupOptional.isEmpty()) {
+                return Responses.notFound("Group not found.");
+            }
+
+            Optional<GroupUserRole> groupUserRoleOptional = groupUserRoleRepository.findByUserIdAndGroupId(userId, groupId);
+            if (groupUserRoleOptional.isEmpty()) {
+                return Responses.notFound("User not found in the group.");
+            }
+
+            GroupUserRole groupUserRole = groupUserRoleOptional.get();
+
+            Optional<Role> roleOptional = roleService.getRoleById(roleId);
+            if (roleOptional.isEmpty()) {
+                return Responses.notFound("Role not found.");
+            }
+
+            Role newRole = roleOptional.get();
+
+            if (groupUserRole.role.equals(newRole)) {
+                return Responses.error("User already has this role.");
+            }
+
+            groupUserRole.role = newRole;
+            groupUserRoleRepository.save(groupUserRole);
+
+            return ResponseEntity.ok("User role updated successfully.");
+
+        } catch (Exception e) {
+            return Responses.internalError("An error occurred while updating the user role.");
+        }
+    }
+
+    @DeleteMapping("/{group_id}/{user_id}")
+    public ResponseEntity<?> removeUserFromGroup(@PathVariable("group_id") Long groupId,
+                                                 @PathVariable("user_id") Long userId) {
+        try {
+            Optional<Group> groupOptional = groupService.getGroupById(groupId);
+            if (groupOptional.isEmpty()) {
+                return Responses.notFound("Group not found.");
+            }
+
+            Optional<GroupUserRole> groupUserRoleOptional = groupUserRoleRepository.findByUserIdAndGroupId(userId, groupId);
+            if (groupUserRoleOptional.isEmpty()) {
+                return Responses.notFound("User not found in the group.");
+            }
+
+            groupUserRoleRepository.delete(groupUserRoleOptional.get());
+
+            return ResponseEntity.ok("User removed from the group successfully.");
+
+        } catch (Exception e) {
+            return Responses.internalError("An error occurred while removing the user from the group.");
+        }
+    }
+
+    @DeleteMapping("/{group_id}/self")
+    public ResponseEntity<?> removeSelfFromGroup(@PathVariable("group_id") Long groupId) {
+        try {
+            Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+            Optional<Group> groupOptional = groupService.getGroupById(groupId);
+            if (groupOptional.isEmpty()) {
+                return Responses.notFound("Group not found.");
+            }
+
+            Optional<GroupUserRole> groupUserRoleOptional = groupUserRoleRepository.findByUserIdAndGroupId(userId, groupId);
+            if (groupUserRoleOptional.isEmpty()) {
+                return Responses.notFound("You are not a member of this group.");
+            }
+
+            GroupUserRole groupUserRole = groupUserRoleOptional.get();
+
+            if (groupUserRole.role != null && groupUserRole.role.name.equals("Owner")) {
+
+                Optional<GroupUserRole> firstAdmin = groupUserRoleRepository.findFirstByGroupIdAndRoleName(groupId, "Admin");
+
+                if (firstAdmin.isPresent()) {
+                    GroupUserRole adminRole = firstAdmin.get();
+
+                    adminRole.role = groupUserRole.role;  // Admin becomes the new owner
+                    groupUserRoleRepository.save(adminRole);
+
+                    groupUserRoleRepository.delete(groupUserRole);
+
+                    return ResponseEntity.ok("You have left the group. Ownership has been transferred.");
+                } else {
+                    return Responses.error("There are no admins in the group to transfer ownership.");
+                }
+            } else {
+                groupUserRoleRepository.delete(groupUserRole);
+                return ResponseEntity.ok("You have successfully left the group.");
+            }
+
+        } catch (Exception e) {
+            return Responses.internalError("An error occurred while removing yourself from the group.");
         }
     }
 }

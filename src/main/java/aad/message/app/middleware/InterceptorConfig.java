@@ -8,9 +8,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class InterceptorConfig implements WebMvcConfigurer {
 
     private final GroupAccessInterceptor groupAccessInterceptor;
+    private final AdminOwnerInterceptor adminOwnerInterceptor;
+    private final AdminCannotModifyOwnerInterceptor adminCannotModifyOwnerInterceptor;
 
-    public InterceptorConfig(GroupAccessInterceptor groupAccessInterceptor) {
+    public InterceptorConfig(GroupAccessInterceptor groupAccessInterceptor, AdminOwnerInterceptor adminOwnerInterceptor, AdminCannotModifyOwnerInterceptor adminCannotModifyOwnerInterceptor) {
         this.groupAccessInterceptor = groupAccessInterceptor;
+        this.adminOwnerInterceptor = adminOwnerInterceptor;
+        this.adminCannotModifyOwnerInterceptor = adminCannotModifyOwnerInterceptor;
     }
 
     @Override
@@ -20,11 +24,26 @@ public class InterceptorConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/login");
 
         registry.addInterceptor(groupAccessInterceptor)
-                .addPathPatterns("/groups/{id}",
+                .addPathPatterns("/groups/**",
+                        "/messages/{id:\\d+}")
+                .excludePathPatterns("/login", "/groups");
+        registry.addInterceptor(adminOwnerInterceptor)
+                .addPathPatterns("/groups/{group_id}/{user_id}/{role_id}",
+                        "/groups/{group_id}/{user_id}")
+                .excludePathPatterns("/login",
                         "/groups/{id}/users",
-                        "/messages/{id:\\d+}",
+                        "/groups/{groupId}/users/{userId}",
                         "/groups/{id}/name",
-                        "/groups/{id}/image")
-                .excludePathPatterns("/login");
+                        "/groups/{id}/image",
+                        "/groups/{group_id}/self");
+        registry.addInterceptor(adminCannotModifyOwnerInterceptor)
+                .addPathPatterns("/groups/{group_id}/{user_id}/{role_id}",
+                        "/groups/{group_id}/{user_id}")
+                .excludePathPatterns("/login",
+                        "/groups/{id}/users",
+                        "/groups/{groupId}/users/{userId}",
+                        "/groups/{id}/name",
+                        "/groups/{id}/image",
+                        "/groups/{group_id}/self");
     }
 }

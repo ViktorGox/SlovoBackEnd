@@ -1,4 +1,4 @@
-package aad.message.app.group_user;
+package aad.message.app.group_user_role;
 
 import aad.message.app.group.Group;
 import aad.message.app.role.Role;
