@@ -1,12 +1,13 @@
 package aad.message.app.group_user;
 
 import aad.message.app.group.Group;
+import aad.message.app.role.Role;
 import aad.message.app.user.User;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "group_user_role")
-public class GroupUser {
+public class GroupUserRole {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,10 +21,16 @@ public class GroupUser {
     @JoinColumn(name = "user_id", nullable = false)
     public User user;
 
-    public GroupUser() {}
+    @ManyToOne
+    @JoinColumn(name = "role_id", nullable = false)
+    public Role role;
 
-    public GroupUser(Group group, User user) {
+    public GroupUserRole() {
+    }
+
+    public GroupUserRole(Group group, User user, Role role) {
         this.group = group;
         this.user = user;
+        this.role = role;
     }
 }

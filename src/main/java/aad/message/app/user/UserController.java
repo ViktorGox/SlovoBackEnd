@@ -4,7 +4,7 @@ import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.group.Group;
 import aad.message.app.group.GroupDTO;
-import aad.message.app.group_user.GroupUserRepository;
+import aad.message.app.group_user.GroupUserRoleRepository;
 import aad.message.app.jwt.JwtUtils;
 import aad.message.app.returns.Responses;
 import jakarta.validation.Valid;
@@ -28,18 +28,18 @@ public class UserController {
     private final UserRepository repository;
     private final ApplicationContext context;
     private final FileUploadHandler fileUploadHandler;
-    private final GroupUserRepository groupUserRepository;
+    private final GroupUserRoleRepository groupUserRoleRepository;
 
     public UserController(UserRepository repository,
                           ApplicationContext context,
                           FileUploadHandler fileUploadHandler,
                           JwtUtils jwtUtils,
-                          GroupUserRepository groupUserRepository) {
+                          GroupUserRoleRepository groupUserRoleRepository) {
         this.repository = repository;
         this.context = context;
         this.fileUploadHandler = fileUploadHandler;
         this.jwtUtils = jwtUtils;
-        this.groupUserRepository = groupUserRepository;
+        this.groupUserRoleRepository = groupUserRoleRepository;
     }
 
     @GetMapping
@@ -53,7 +53,7 @@ public class UserController {
     public ResponseEntity<?> getUserGroups() {
         Long userId = getUserId();
 
-        List<Group> groups = groupUserRepository.findByUserId(userId)
+        List<Group> groups = groupUserRoleRepository.findByUserId(userId)
                 .stream()
                 .map(groupUser -> groupUser.group)
                 .toList();

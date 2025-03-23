@@ -3,7 +3,7 @@ package aad.message.app.group;
 import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.returns.Responses;
-import aad.message.app.group_user.GroupUser;
+import aad.message.app.group_user.GroupUserRole;
 import aad.message.app.user.UserDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -43,7 +43,7 @@ public class GroupController {
     @GetMapping("/{id}/users")
     public ResponseEntity<?> getUsersByGroupId(@PathVariable Long id) {
         try {
-            List<GroupUser> usersInGroup = groupService.getUsersByGroupId(id);
+            List<GroupUserRole> usersInGroup = groupService.getUsersByGroupId(id);
             if (usersInGroup.isEmpty()) {
                 return Responses.notFound("No users found for this group.");
             }

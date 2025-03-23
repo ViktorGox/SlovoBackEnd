@@ -1,7 +1,7 @@
 package aad.message.app.group;
 
 import aad.message.app.filetransfer.ImageContainer;
-import aad.message.app.group_user.GroupUser;
+import aad.message.app.group_user.GroupUserRole;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -26,7 +26,7 @@ public class Group implements ImageContainer {
     public Integer reminderFrequency;
 
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<GroupUser> groupUsers;
+    private Set<GroupUserRole> groupUserRoles;
 
     @Override
     public String getImageURL() {
