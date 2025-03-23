@@ -11,6 +11,7 @@ import aad.message.app.user.UserDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -215,6 +216,49 @@ public class GroupController {
 
         } catch (Exception e) {
             return Responses.internalError("An error occurred while removing the user from the group.");
+        }
+    }
+
+    @DeleteMapping("/leave/{group_id}")
+    public ResponseEntity<?> removeSelfFromGroup(@PathVariable("group_id") Long groupId) {
+        try {
+            Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+            Optional<Group> groupOptional = groupService.getGroupById(groupId);
+            if (groupOptional.isEmpty()) {
+                return Responses.notFound("Group not found.");
+            }
+
+            Optional<GroupUserRole> groupUserRoleOptional = groupUserRoleRepository.findByUserIdAndGroupId(userId, groupId);
+            if (groupUserRoleOptional.isEmpty()) {
+                return Responses.notFound("You are not a member of this group.");
+            }
+
+            GroupUserRole groupUserRole = groupUserRoleOptional.get();
+
+            if (groupUserRole.role != null && groupUserRole.role.name.equals("Owner")) {
+
+                Optional<GroupUserRole> firstAdmin = groupUserRoleRepository.findFirstByGroupIdAndRoleName(groupId, "Admin");
+
+                if (firstAdmin.isPresent()) {
+                    GroupUserRole adminRole = firstAdmin.get();
+
+                    adminRole.role = groupUserRole.role;  // Admin becomes the new owner
+                    groupUserRoleRepository.save(adminRole);
+
+                    groupUserRoleRepository.delete(groupUserRole);
+
+                    return ResponseEntity.ok("You have left the group. Ownership has been transferred.");
+                } else {
+                    return Responses.error("There are no admins in the group to transfer ownership.");
+                }
+            } else {
+                groupUserRoleRepository.delete(groupUserRole);
+                return ResponseEntity.ok("You have successfully left the group.");
+            }
+
+        } catch (Exception e) {
+            return Responses.internalError("An error occurred while removing yourself from the group.");
         }
     }
 }

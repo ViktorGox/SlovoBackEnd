@@ -14,4 +14,6 @@ public interface GroupUserRoleRepository extends JpaRepository<GroupUserRole, Lo
     boolean existsByGroupIdAndUserId(Long groupId, Long userId);
 
     Optional<GroupUserRole> findByUserIdAndGroupId(Long userId, Long groupId);
+
+    Optional<GroupUserRole> findFirstByGroupIdAndRoleName(Long groupId, String roleName);
 }
