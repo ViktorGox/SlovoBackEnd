@@ -2,8 +2,11 @@ package aad.message.app.group;
 
 import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
+import aad.message.app.group_user_role.GroupUserRoleRepository;
 import aad.message.app.returns.Responses;
 import aad.message.app.group_user_role.GroupUserRole;
+import aad.message.app.role.Role;
+import aad.message.app.role.RoleService;
 import aad.message.app.user.UserDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -21,10 +24,14 @@ import java.util.stream.Collectors;
 public class GroupController {
     private final GroupService groupService;
     private final FileUploadHandler fileUploadHandler;
+    private final GroupUserRoleRepository groupUserRoleRepository;
+    private final RoleService roleService;
 
-    public GroupController(GroupService groupService, FileUploadHandler fileUploadHandler) {
+    public GroupController(GroupService groupService, FileUploadHandler fileUploadHandler, GroupUserRoleRepository groupUserRoleRepository, RoleService roleService) {
         this.groupService = groupService;
         this.fileUploadHandler = fileUploadHandler;
+        this.groupUserRoleRepository = groupUserRoleRepository;
+        this.roleService = roleService;
     }
 
     @GetMapping("/{id}")
@@ -147,6 +154,44 @@ public class GroupController {
             return ResponseEntity.ok(GroupDTO.fromEntity(group));
         } catch (Exception e) {
             return Responses.internalError("An error occurred while updating the image URL.");
+        }
+    }
+
+    @PutMapping("/{group_id}/{user_id}/{role_id}")
+    public ResponseEntity<?> updateUserRole(@PathVariable("group_id") Long groupId,
+                                            @PathVariable("user_id") Long userId,
+                                            @PathVariable("role_id") Long roleId) {
+        try {
+            Optional<Group> groupOptional = groupService.getGroupById(groupId);
+            if (groupOptional.isEmpty()) {
+                return Responses.notFound("Group not found.");
+            }
+
+            Optional<GroupUserRole> groupUserRoleOptional = groupUserRoleRepository.findByUserIdAndGroupId(userId, groupId);
+            if (groupUserRoleOptional.isEmpty()) {
+                return Responses.notFound("User not found in the group.");
+            }
+
+            GroupUserRole groupUserRole = groupUserRoleOptional.get();
+
+            Optional<Role> roleOptional = roleService.getRoleById(roleId);
+            if (roleOptional.isEmpty()) {
+                return Responses.notFound("Role not found.");
+            }
+
+            Role newRole = roleOptional.get();
+
+            if (groupUserRole.role.equals(newRole)) {
+                return Responses.error("User already has this role.");
+            }
+
+            groupUserRole.role = newRole;
+            groupUserRoleRepository.save(groupUserRole);
+
+            return ResponseEntity.ok("User role updated successfully.");
+
+        } catch (Exception e) {
+            return Responses.internalError("An error occurred while updating the user role.");
         }
     }
 }
