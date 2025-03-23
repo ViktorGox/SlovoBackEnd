@@ -1,6 +1,6 @@
 package aad.message.app.middleware;
 
-import aad.message.app.group_user.GroupUserRepository;
+import aad.message.app.group_user.GroupUserRoleRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,10 +13,10 @@ import java.util.regex.Pattern;
 
 @Component
 public class GroupAccessInterceptor implements HandlerInterceptor {
-    private final GroupUserRepository groupUserRepository;
+    private final GroupUserRoleRepository groupUserRoleRepository;
 
-    public GroupAccessInterceptor(GroupUserRepository groupUserRepository) {
-        this.groupUserRepository = groupUserRepository;
+    public GroupAccessInterceptor(GroupUserRoleRepository groupUserRoleRepository) {
+        this.groupUserRoleRepository = groupUserRoleRepository;
     }
 
     @Override
@@ -27,7 +27,7 @@ public class GroupAccessInterceptor implements HandlerInterceptor {
         if (matcher.find()) {
             Long groupId = Long.parseLong(matcher.group(2));
 
-            if(isUnauthorizedForGroup(groupUserRepository, List.of(groupId))) {
+            if(isUnauthorizedForGroup(groupUserRoleRepository, List.of(groupId))) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are not a member of this group.");
                 return false;
             }
@@ -39,11 +39,11 @@ public class GroupAccessInterceptor implements HandlerInterceptor {
         return false;
     }
 
-    public static boolean isUnauthorizedForGroup(GroupUserRepository groupUserRepository, List<Long> groupIds) {
+    public static boolean isUnauthorizedForGroup(GroupUserRoleRepository groupUserRoleRepository, List<Long> groupIds) {
         Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         for (Long id : groupIds) {
-            if (!groupUserRepository.existsByUserIdAndGroupId(userId, id)) {
+            if (!groupUserRoleRepository.existsByUserIdAndGroupId(userId, id)) {
                 return true;
             }
         }

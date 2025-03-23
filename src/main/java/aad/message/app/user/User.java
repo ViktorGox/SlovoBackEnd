@@ -1,10 +1,9 @@
 package aad.message.app.user;
 
 import aad.message.app.filetransfer.ImageContainer;
-import aad.message.app.group_user.GroupUser;
+import aad.message.app.group_user.GroupUserRole;
 import jakarta.persistence.*;
 
-import java.io.Serializable;
 import java.util.Set;
 
 /**
@@ -32,7 +31,7 @@ public class User implements ImageContainer {
     public String imageUrl;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<GroupUser> groupUsers;
+    private Set<GroupUserRole> groupUserRoles;
 
     @Override
     public String getImageURL() {

@@ -1,7 +1,7 @@
 package aad.message.app.message.messagetext;
 
 import aad.message.app.group.GroupRepository;
-import aad.message.app.group_user.GroupUserRepository;
+import aad.message.app.group_user.GroupUserRoleRepository;
 import aad.message.app.message.Message;
 import aad.message.app.message.MessageRepository;
 import aad.message.app.message.MessageType;
@@ -25,17 +25,17 @@ public class MessageTextController {
     private final UserRepository userRepository;
     private final MessageTextRepository messageTextRepository;
     private final GroupRepository groupRepository;
-    private final GroupUserRepository groupUserRepository;
+    private final GroupUserRoleRepository groupUserRoleRepository;
 
     public MessageTextController(UserRepository userRepository,
                                  MessageRepository messageRepository,
                                  MessageTextRepository messageTextRepository,
-                                 GroupRepository groupRepository, GroupUserRepository groupUserRepository) {
+                                 GroupRepository groupRepository, GroupUserRoleRepository groupUserRoleRepository) {
         this.userRepository = userRepository;
         this.messageRepository = messageRepository;
         this.messageTextRepository = messageTextRepository;
         this.groupRepository = groupRepository;
-        this.groupUserRepository = groupUserRepository;
+        this.groupUserRoleRepository = groupUserRoleRepository;
     }
 
     @PostMapping
@@ -45,7 +45,7 @@ public class MessageTextController {
         if (!missingFields.isEmpty()) return Responses.incompleteBody(missingFields);
 
         Long userId = getUserId();
-        if(GroupAccessInterceptor.isUnauthorizedForGroup(groupUserRepository, List.of(dto.groupId))) {
+        if(GroupAccessInterceptor.isUnauthorizedForGroup(groupUserRoleRepository, List.of(dto.groupId))) {
             return Responses.unauthorized();
         }
 

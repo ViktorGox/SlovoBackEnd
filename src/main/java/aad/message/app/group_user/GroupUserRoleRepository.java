@@ -4,11 +4,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface GroupUserRepository extends JpaRepository<GroupUser, Long> {
-    List<GroupUser> findByGroupId(Long groupId);
+public interface GroupUserRoleRepository extends JpaRepository<GroupUserRole, Long> {
+    List<GroupUserRole> findByGroupId(Long groupId);
     boolean existsByUserIdAndGroupId(Long userId, Long groupId);
 
-    List<GroupUser> findByUserId(Long userId);
+    List<GroupUserRole> findByUserId(Long userId);
 
     boolean existsByGroupIdAndUserId(Long groupId, Long userId);
 }

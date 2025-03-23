@@ -21,23 +21,16 @@ CREATE TABLE role (
                       name TEXT NOT NULL
 );
 
--- CREATE TABLE group_user_role (
---                                  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
---                                  group_id INTEGER NOT NULL,
---                                  user_id INTEGER NOT NULL,
---                                  role_id INTEGER,
---                                  FOREIGN KEY (group_id) REFERENCES "group"(id),
---                                  FOREIGN KEY (user_id) REFERENCES "user"(id),
---                                  FOREIGN KEY (role_id) REFERENCES role(id)
--- );
-
 CREATE TABLE group_user_role (
                                  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                                  group_id INTEGER NOT NULL,
                                  user_id INTEGER NOT NULL,
+                                 role_id INTEGER NOT NULL,
                                  FOREIGN KEY (group_id) REFERENCES "group"(id),
-                                 FOREIGN KEY (user_id) REFERENCES "user"(id)
+                                 FOREIGN KEY (user_id) REFERENCES "user"(id),
+                                 FOREIGN KEY (role_id) REFERENCES role(id)
 );
+
 
 CREATE TABLE message (
                          id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -68,3 +61,8 @@ CREATE TABLE message_audio_group (
                                      FOREIGN KEY (message_audio_id) REFERENCES message_audio(id) ON DELETE CASCADE,
                                      FOREIGN KEY (group_id) REFERENCES "group"(id) ON DELETE CASCADE
 );
+
+INSERT INTO role (name) VALUES
+                            ('User'),
+                            ('Admin'),
+                            ('Owner');

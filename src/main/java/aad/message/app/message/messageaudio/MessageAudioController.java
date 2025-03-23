@@ -3,7 +3,7 @@ package aad.message.app.message.messageaudio;
 import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.group.GroupRepository;
-import aad.message.app.group_user.GroupUserRepository;
+import aad.message.app.group_user.GroupUserRoleRepository;
 import aad.message.app.message.Message;
 import aad.message.app.message.MessageRepository;
 import aad.message.app.message.MessageType;
@@ -40,7 +40,7 @@ public class MessageAudioController {
     private final MessageAudioGroupRepository messageAudioGroupRepository;
     private final GroupRepository groupRepository;
     private final TranscriptionService transcriptionService;
-    private final GroupUserRepository groupUserRepository;
+    private final GroupUserRoleRepository groupUserRoleRepository;
 
     public MessageAudioController(UserRepository userRepository,
                                   FileUploadHandler fileUploadHandler,
@@ -48,7 +48,7 @@ public class MessageAudioController {
                                   MessageRepository messageRepository,
                                   MessageAudioGroupRepository messageAudioGroupRepository,
                                   GroupRepository groupRepository,
-                                  TranscriptionService transcriptionService, GroupUserRepository groupUserRepository) {
+                                  TranscriptionService transcriptionService, GroupUserRoleRepository groupUserRoleRepository) {
         this.messageAudioRepository = messageAudioRepository;
         this.fileUploadHandler = fileUploadHandler;
         this.userRepository = userRepository;
@@ -56,7 +56,7 @@ public class MessageAudioController {
         this.messageAudioGroupRepository = messageAudioGroupRepository;
         this.groupRepository = groupRepository;
         this.transcriptionService = transcriptionService;
-        this.groupUserRepository = groupUserRepository;
+        this.groupUserRoleRepository = groupUserRoleRepository;
     }
 
     @PostMapping
@@ -70,7 +70,7 @@ public class MessageAudioController {
         if (!missingFields.isEmpty()) return Responses.incompleteBody(missingFields);
 
         Long userId = getUserId();
-        if (GroupAccessInterceptor.isUnauthorizedForGroup(groupUserRepository, dto.groupIds)) {
+        if (GroupAccessInterceptor.isUnauthorizedForGroup(groupUserRoleRepository, dto.groupIds)) {
             return Responses.unauthorized();
         }
 

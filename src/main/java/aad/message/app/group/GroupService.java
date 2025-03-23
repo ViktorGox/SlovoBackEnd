@@ -1,7 +1,7 @@
 package aad.message.app.group;
 
-import aad.message.app.group_user.GroupUser;
-import aad.message.app.group_user.GroupUserRepository;
+import aad.message.app.group_user.GroupUserRole;
+import aad.message.app.group_user.GroupUserRoleRepository;
 import aad.message.app.user.User;
 import aad.message.app.user.UserRepository;
 import jakarta.transaction.Transactional;
@@ -14,12 +14,12 @@ import java.util.Optional;
 @Service
 public class GroupService {
     private final GroupRepository groupRepository;
-    private final GroupUserRepository groupUserRepository;
+    private final GroupUserRoleRepository groupUserRoleRepository;
     private final UserRepository userRepository;
 
-    public GroupService(GroupRepository groupRepository, GroupUserRepository groupUserRepository, UserRepository userRepository) {
+    public GroupService(GroupRepository groupRepository, GroupUserRoleRepository groupUserRoleRepository, UserRepository userRepository) {
         this.groupRepository = groupRepository;
-        this.groupUserRepository = groupUserRepository;
+        this.groupUserRoleRepository = groupUserRoleRepository;
         this.userRepository = userRepository;
     }
     @Transactional
@@ -29,8 +29,8 @@ public class GroupService {
 
         Group savedGroup = groupRepository.save(group);
 
-        GroupUser groupUser = new GroupUser(savedGroup, user);
-        groupUserRepository.save(groupUser);
+        GroupUserRole groupUserRole = new GroupUserRole(savedGroup, user, null);
+        groupUserRoleRepository.save(groupUserRole);
 
         return savedGroup;
     }
@@ -39,8 +39,8 @@ public class GroupService {
         return groupRepository.findById(id);
     }
 
-    public List<GroupUser> getUsersByGroupId(Long groupId) {
-        return groupUserRepository.findByGroupId(groupId);
+    public List<GroupUserRole> getUsersByGroupId(Long groupId) {
+        return groupUserRoleRepository.findByGroupId(groupId);
     }
 
     public boolean doesUserExist(Long userId) {
@@ -48,15 +48,15 @@ public class GroupService {
     }
 
     public boolean isUserInGroup(Long groupId, Long userId) {
-        return groupUserRepository.existsByGroupIdAndUserId(groupId, userId);
+        return groupUserRoleRepository.existsByGroupIdAndUserId(groupId, userId);
     }
 
     public void addUserToGroup(Long groupId, Long userId) {
-        GroupUser groupUser = new GroupUser();
-        groupUser.group = groupRepository.findById(groupId).orElseThrow();
-        groupUser.user = userRepository.findById(userId).orElseThrow();
+        GroupUserRole groupUserRole = new GroupUserRole();
+        groupUserRole.group = groupRepository.findById(groupId).orElseThrow();
+        groupUserRole.user = userRepository.findById(userId).orElseThrow();
 
-        groupUserRepository.save(groupUser);
+        groupUserRoleRepository.save(groupUserRole);
     }
 
     public Group updateGroup(Group group) {
