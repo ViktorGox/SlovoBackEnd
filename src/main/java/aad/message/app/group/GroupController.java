@@ -196,6 +196,30 @@ public class GroupController {
         }
     }
 
+    @PutMapping("/{group_id}/reminder")
+    public ResponseEntity<?> updateGroupReminder(
+            @PathVariable("group_id") Long groupId,
+            @RequestBody ReminderUpdateDTO reminderUpdateDTO) {
+        try {
+            Optional<Group> groupOptional = groupService.getGroupById(groupId);
+            if (groupOptional.isEmpty()) {
+                return Responses.notFound("Group not found.");
+            }
+
+            Group group = groupOptional.get();
+
+            // If both values are null, it means reminders are disabled.
+            group.reminderStart = reminderUpdateDTO.getReminderStart();
+            group.reminderFrequency = reminderUpdateDTO.getReminderFrequency();
+
+            groupService.updateGroup(group);
+
+            return ResponseEntity.ok(GroupDTO.fromEntity(group));
+        } catch (Exception e) {
+            return Responses.internalError("An error occurred while updating the reminder settings.");
+        }
+    }
+
     @DeleteMapping("/{group_id}/{user_id}")
     public ResponseEntity<?> removeUserFromGroup(@PathVariable("group_id") Long groupId,
                                                  @PathVariable("user_id") Long userId) {
