@@ -29,7 +29,8 @@ public class InterceptorConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/login", "/groups");
         registry.addInterceptor(adminOwnerInterceptor)
                 .addPathPatterns("/groups/{group_id}/{user_id}/{role_id}",
-                        "/groups/{group_id}/{user_id}")
+                        "/groups/{group_id}/{user_id}",
+                        "groups/{group_id}/reminder")
                 .excludePathPatterns("/login",
                         "/groups/{id}/users",
                         "/groups/{groupId}/users/{userId}",
