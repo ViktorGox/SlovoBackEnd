@@ -26,7 +26,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
         registry.addInterceptor(groupAccessInterceptor)
                 .addPathPatterns("/groups/**",
                         "/messages/{id:\\d+}")
-                .excludePathPatterns("/login", "/groups");
+                .excludePathPatterns("/login", "/groups", "/groups/recentChats");
         registry.addInterceptor(adminOwnerInterceptor)
                 .addPathPatterns("/groups/{group_id}/{user_id}/{role_id}",
                         "/groups/{group_id}/{user_id}",
@@ -36,7 +36,8 @@ public class InterceptorConfig implements WebMvcConfigurer {
                         "/groups/{groupId}/users/{userId}",
                         "/groups/{id}/name",
                         "/groups/{id}/image",
-                        "/groups/{group_id}/self");
+                        "/groups/{group_id}/self",
+                        "/groups/recentChats");
         registry.addInterceptor(adminCannotModifyOwnerInterceptor)
                 .addPathPatterns("/groups/{group_id}/{user_id}/{role_id}",
                         "/groups/{group_id}/{user_id}")
@@ -45,6 +46,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
                         "/groups/{groupId}/users/{userId}",
                         "/groups/{id}/name",
                         "/groups/{id}/image",
-                        "/groups/{group_id}/self");
+                        "/groups/{group_id}/self",
+                        "/groups/recentChats");
     }
 }

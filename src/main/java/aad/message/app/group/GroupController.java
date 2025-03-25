@@ -64,6 +64,24 @@ public class GroupController {
         }
     }
 
+    @GetMapping("/recentChats")
+    public ResponseEntity<?> getRecentChats() {
+        try {
+            Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+            List<RecentChatDTO> recentChats = groupService.getRecentChatsForUser(userId);
+
+            if (recentChats.isEmpty()) {
+                return Responses.notFound("No groups found for this user.");
+            }
+
+            return ResponseEntity.ok(recentChats);
+
+        } catch (Exception e) {
+            return Responses.internalError("An error occurred while fetching recent chats.");
+        }
+    }
+
 
     @PostMapping
     public ResponseEntity<?> createGroup(@Valid @RequestBody Group group) {

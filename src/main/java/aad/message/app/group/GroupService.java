@@ -2,6 +2,10 @@ package aad.message.app.group;
 
 import aad.message.app.group_user_role.GroupUserRole;
 import aad.message.app.group_user_role.GroupUserRoleRepository;
+import aad.message.app.message.Message;
+import aad.message.app.message.MessageService;
+import aad.message.app.message.RecentMessageDTO;
+import aad.message.app.message.messagetext.MessageText;
 import aad.message.app.role.Role;
 import aad.message.app.role.RoleRepository;
 import aad.message.app.user.User;
@@ -10,6 +14,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,12 +25,14 @@ public class GroupService {
     private final GroupUserRoleRepository groupUserRoleRepository;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final MessageService messageService;
 
-    public GroupService(GroupRepository groupRepository, GroupUserRoleRepository groupUserRoleRepository, UserRepository userRepository, RoleRepository roleRepository) {
+    public GroupService(GroupRepository groupRepository, GroupUserRoleRepository groupUserRoleRepository, UserRepository userRepository, RoleRepository roleRepository, MessageService messageService) {
         this.groupRepository = groupRepository;
         this.groupUserRoleRepository = groupUserRoleRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.messageService = messageService;
     }
     @Transactional
     public Group createGroup(Group group) {
@@ -70,5 +78,50 @@ public class GroupService {
 
     public Group updateGroup(Group group) {
         return groupRepository.save(group);
+    }
+
+    public List<RecentChatDTO> getRecentChatsForUser(Long userId) {
+        List<Group> groups = groupUserRoleRepository.findByUserId(userId)
+                .stream()
+                .map(groupUser -> groupUser.group)
+                .toList();
+
+        if (groups.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<RecentChatDTO> recentChats = new ArrayList<>();
+
+        for (Group group : groups) {
+            RecentChatDTO recentChat = new RecentChatDTO();
+            recentChat.groupTitle = group.name;
+            recentChat.groupImage = group.imageUrl;
+
+            // Get the last message from the user in this group
+            Optional<Message> lastUserMessage = messageService.getLatestMessageByUser(userId, group.id);
+            recentChat.lastUserMessageTime = lastUserMessage.map(message -> message.sentDate).orElse(null);
+
+            // Get the last message in the group, irrespective of the user
+            Optional<Message> lastMessage = messageService.getLatestMessageForGroup(group.id);
+            if(lastMessage.isPresent()) {
+                RecentMessageDTO recentMessageDTO = new RecentMessageDTO();
+                Message message = lastMessage.get();
+                recentMessageDTO.username = message.user.username;
+                recentMessageDTO.messageType = message.messageType;
+                recentMessageDTO.lastMessageTime = message.sentDate;
+                if(message instanceof MessageText){
+                    recentMessageDTO.messageText = ((MessageText) message).text;
+                } else {
+                    recentMessageDTO.messageText = null;
+                }
+                recentChat.lastMessage = recentMessageDTO;
+            } else {
+                recentChat.lastMessage = null;
+            }
+
+            recentChats.add(recentChat);
+        }
+
+        return recentChats;
     }
 }
