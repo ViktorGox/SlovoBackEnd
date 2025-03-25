@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -54,7 +55,7 @@ public class MessageTextController {
 
         MessageText message = new MessageText();
         message.user = user.get();
-        message.sentDate = LocalDateTime.now();
+        message.sentDate = LocalDateTime.now(ZoneOffset.UTC);
 
         if(dto.replyMessageId != null) {
             Optional<Message> reply = messageRepository.findMessageById(dto.replyMessageId);
