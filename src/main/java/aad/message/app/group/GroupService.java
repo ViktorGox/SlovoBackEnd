@@ -3,7 +3,6 @@ package aad.message.app.group;
 import aad.message.app.group_user_role.GroupUserRole;
 import aad.message.app.group_user_role.GroupUserRoleRepository;
 import aad.message.app.message.Message;
-import aad.message.app.message.MessageRepository;
 import aad.message.app.message.MessageService;
 import aad.message.app.message.RecentMessageDTO;
 import aad.message.app.message.messagetext.MessageText;
