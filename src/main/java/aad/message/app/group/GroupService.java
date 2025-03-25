@@ -5,6 +5,8 @@ import aad.message.app.group_user_role.GroupUserRoleRepository;
 import aad.message.app.message.Message;
 import aad.message.app.message.MessageRepository;
 import aad.message.app.message.MessageService;
+import aad.message.app.message.RecentMessageDTO;
+import aad.message.app.message.messagetext.MessageText;
 import aad.message.app.role.Role;
 import aad.message.app.role.RoleRepository;
 import aad.message.app.user.User;
@@ -98,13 +100,26 @@ public class GroupService {
 
             // Get the last message from the user in this group
             Optional<Message> lastUserMessage = messageService.getLatestMessageByUser(userId, group.id);
-            recentChat.lastUserMessage = lastUserMessage.orElse(null);
+            recentChat.lastUserMessageTime = lastUserMessage.map(message -> message.sentDate).orElse(null);
 
             // Get the last message in the group, irrespective of the user
             Optional<Message> lastMessage = messageService.getLatestMessageForGroup(group.id);
-            recentChat.lastMessage = lastMessage.orElse(null);
+            if(lastMessage.isPresent()) {
+                RecentMessageDTO recentMessageDTO = new RecentMessageDTO();
+                Message message = lastMessage.get();
+                recentMessageDTO.username = message.user.username;
+                recentMessageDTO.messageType = message.messageType;
+                recentMessageDTO.lastMessageTime = message.sentDate;
+                if(message instanceof MessageText){
+                    recentMessageDTO.messageText = ((MessageText) message).text;
+                } else {
+                    recentMessageDTO.messageText = null;
+                }
+                recentChat.lastMessage = recentMessageDTO;
+            } else {
+                recentChat.lastMessage = null;
+            }
 
-            // Add the recent chat to the list
             recentChats.add(recentChat);
         }
 
