@@ -28,7 +28,7 @@ public class GroupService {
     private final RoleRepository roleRepository;
     private final MessageService messageService;
 
-    public GroupService(GroupRepository groupRepository, GroupUserRoleRepository groupUserRoleRepository, UserRepository userRepository, RoleRepository roleRepository, MessageRepository messageRepository, MessageService messageService) {
+    public GroupService(GroupRepository groupRepository, GroupUserRoleRepository groupUserRoleRepository, UserRepository userRepository, RoleRepository roleRepository, MessageService messageService) {
         this.groupRepository = groupRepository;
         this.groupUserRoleRepository = groupUserRoleRepository;
         this.userRepository = userRepository;
