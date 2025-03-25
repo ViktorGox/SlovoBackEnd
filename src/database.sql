@@ -35,7 +35,7 @@ CREATE TABLE group_user_role (
 CREATE TABLE message (
                          id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                          user_id INTEGER NOT NULL,
-                         sent_date TIMESTAMP NOT NULL,
+                         sent_date TIMESTAMP WITH TIME ZONE NOT NULL,
                          message_type TEXT CHECK (message_type IN ('text', 'audio')),
                          reply_to_message_id INTEGER NULL REFERENCES message(id),
                          FOREIGN KEY (user_id) REFERENCES "user"(id)

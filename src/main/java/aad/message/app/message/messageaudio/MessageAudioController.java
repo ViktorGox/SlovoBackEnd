@@ -24,7 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -79,7 +80,7 @@ public class MessageAudioController {
 
         MessageAudio message = new MessageAudio();
         message.user = user.get();
-        message.sentDate = LocalDateTime.now();
+        message.sentDate = OffsetDateTime.now(ZoneOffset.UTC);
 
         if (dto.replyMessageId != null) {
             Optional<Message> reply = messageRepository.findMessageById(dto.replyMessageId);
