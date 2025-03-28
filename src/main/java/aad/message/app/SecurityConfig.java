@@ -1,6 +1,6 @@
 package aad.message.app;
 
-import aad.message.app.jwt.JwtMiddleware;
+import aad.message.app.middleware.JwtMiddleware;
 import aad.message.app.jwt.JwtUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;

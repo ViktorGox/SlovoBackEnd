@@ -1,5 +1,6 @@
-package aad.message.app.jwt;
+package aad.message.app.middleware;
 
+import aad.message.app.jwt.JwtUtils;
 import aad.message.app.user.User;
 import aad.message.app.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
