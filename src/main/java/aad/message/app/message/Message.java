@@ -19,8 +19,8 @@ public abstract class Message {
     @JoinColumn(name = "user_id", nullable = false)
     public User user;
 
-    @Column(name = "sent_date", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    public OffsetDateTime sentDate;
+    @Column(name = "sent_date", nullable = false)
+    public LocalDateTime sentDate;
 
     @Column(name = "message_type", nullable = false, insertable=false, updatable=false)
     @Enumerated(EnumType.STRING)
