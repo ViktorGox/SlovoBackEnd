@@ -19,10 +19,6 @@ public class InterceptorConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new RequestBodyInterceptor())
-                .addPathPatterns("/**")
-                .excludePathPatterns("/login");
-
         registry.addInterceptor(groupAccessInterceptor)
                 .addPathPatterns("/groups/**",
                         "/messages/{id:\\d+}")

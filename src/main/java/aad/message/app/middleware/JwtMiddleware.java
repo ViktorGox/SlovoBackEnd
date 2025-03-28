@@ -1,5 +1,6 @@
-package aad.message.app.jwt;
+package aad.message.app.middleware;
 
+import aad.message.app.jwt.JwtUtils;
 import aad.message.app.user.User;
 import aad.message.app.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,14 @@ public class JwtMiddleware extends OncePerRequestFilter {
     public JwtMiddleware(ApplicationContext context, JwtUtils jwtUtils) {
         this.context = context;
         this.jwtUtils = jwtUtils;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        String method = request.getMethod();
+
+        return ("/users".equals(path) && "POST".equalsIgnoreCase(method)) || path.startsWith("/login");
     }
 
     @Override
