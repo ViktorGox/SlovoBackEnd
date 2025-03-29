@@ -3,11 +3,13 @@ package aad.message.app.group;
 import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.group_user_role.GroupUserRoleRepository;
+import aad.message.app.message.Message;
+import aad.message.app.message.MessageService;
 import aad.message.app.returns.Responses;
 import aad.message.app.group_user_role.GroupUserRole;
 import aad.message.app.role.Role;
 import aad.message.app.role.RoleService;
-import aad.message.app.user.UserDTO;
+import aad.message.app.user.UserWithRoleDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,12 +30,14 @@ public class GroupController {
     private final FileUploadHandler fileUploadHandler;
     private final GroupUserRoleRepository groupUserRoleRepository;
     private final RoleService roleService;
+    private final MessageService messageService;
 
-    public GroupController(GroupService groupService, FileUploadHandler fileUploadHandler, GroupUserRoleRepository groupUserRoleRepository, RoleService roleService) {
+    public GroupController(GroupService groupService, FileUploadHandler fileUploadHandler, GroupUserRoleRepository groupUserRoleRepository, RoleService roleService, MessageService messageService) {
         this.groupService = groupService;
         this.fileUploadHandler = fileUploadHandler;
         this.groupUserRoleRepository = groupUserRoleRepository;
         this.roleService = roleService;
+        this.messageService = messageService;
     }
 
     @GetMapping("/{id}")
@@ -55,14 +60,21 @@ public class GroupController {
             if (usersInGroup.isEmpty()) {
                 return Responses.notFound("No users found for this group.");
             }
-            List<UserDTO> userDTOs = usersInGroup.stream()
-                    .map(groupUser -> new UserDTO(groupUser.user))
-                    .collect(Collectors.toList());
+
+            List<UserWithRoleDTO> userDTOs = usersInGroup.stream().map(groupUser -> {
+                // Get the latest message sent by the user in the group
+                Optional<Message> latestMessage = messageService.getLatestMessageByUser(groupUser.user.id, id);
+                LocalDateTime lastMessageTime = latestMessage.map(msg -> msg.sentDate).orElse(null);
+
+                return new UserWithRoleDTO(groupUser.user, groupUser.role, lastMessageTime);
+            }).collect(Collectors.toList());
+
             return ResponseEntity.ok(userDTOs);
         } catch (Exception e) {
             return Responses.internalError("An error occurred while fetching the users.");
         }
     }
+
 
     @GetMapping("/recentChats")
     public ResponseEntity<?> getRecentChats() {
