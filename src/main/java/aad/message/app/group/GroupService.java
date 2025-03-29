@@ -10,6 +10,7 @@ import aad.message.app.role.Role;
 import aad.message.app.role.RoleRepository;
 import aad.message.app.user.User;
 import aad.message.app.user.UserRepository;
+import aad.message.app.group_user_role.UserRoleDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ public class GroupService {
         this.messageService = messageService;
     }
     @Transactional
-    public Group createGroup(Group group) {
+    public Group createGroup(CreateGroupDTO createGroupDTO) {
         Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -43,10 +44,25 @@ public class GroupService {
         Role ownerRole = roleRepository.findByName("Owner")
                 .orElseThrow(() -> new RuntimeException("Role 'Owner' not found"));
 
+        Group group = new Group();
+        group.name = createGroupDTO.name;
         Group savedGroup = groupRepository.save(group);
 
-        GroupUserRole groupUserRole = new GroupUserRole(savedGroup, user, ownerRole);
-        groupUserRoleRepository.save(groupUserRole);
+        GroupUserRole ownerGroupUserRole = new GroupUserRole(savedGroup, user, ownerRole);
+        groupUserRoleRepository.save(ownerGroupUserRole);
+
+        if (createGroupDTO.usersWithRoles != null) {
+            for (UserRoleDTO userRoleDTO : createGroupDTO.usersWithRoles) {
+                User groupUser = userRepository.findById(userRoleDTO.userId)
+                        .orElseThrow(() -> new RuntimeException("User not found with ID: " + userRoleDTO.userId));
+
+                Role role = roleRepository.findByName(userRoleDTO.roleName)
+                        .orElseThrow(() -> new RuntimeException("Role '" + userRoleDTO.roleName + "' not found"));
+
+                GroupUserRole groupUserRole = new GroupUserRole(savedGroup, groupUser, role);
+                groupUserRoleRepository.save(groupUserRole);
+            }
+        }
 
         return savedGroup;
     }
