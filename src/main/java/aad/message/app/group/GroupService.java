@@ -46,6 +46,8 @@ public class GroupService {
 
         Group group = new Group();
         group.name = createGroupDTO.name;
+        group.reminderFrequency = createGroupDTO.reminderFrequency;
+        group.reminderStart = createGroupDTO.reminderStart;
         Group savedGroup = groupRepository.save(group);
 
         GroupUserRole ownerGroupUserRole = new GroupUserRole(savedGroup, user, ownerRole);

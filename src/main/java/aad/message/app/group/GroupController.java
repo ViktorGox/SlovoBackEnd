@@ -54,8 +54,9 @@ public class GroupController {
     }
 
     @GetMapping("/{id}/users")
-    public ResponseEntity<?> getUsersByGroupId(@PathVariable Long id, @RequestParam Long userId) {
+    public ResponseEntity<?> getUsersByGroupId(@PathVariable Long id) {
         try {
+            Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             List<GroupUserRole> usersInGroup = groupService.getUsersByGroupId(id);
             if (usersInGroup.isEmpty()) {
                 return Responses.notFound("No users found for this group.");
@@ -221,7 +222,7 @@ public class GroupController {
             groupUserRole.role = newRole;
             groupUserRoleRepository.save(groupUserRole);
 
-            return ResponseEntity.ok("User role updated successfully.");
+            return ResponseEntity.ok().build();
 
         } catch (Exception e) {
             return Responses.internalError("An error occurred while updating the user role.");
