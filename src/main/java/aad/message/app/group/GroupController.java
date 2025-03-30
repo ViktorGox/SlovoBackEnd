@@ -9,7 +9,7 @@ import aad.message.app.returns.Responses;
 import aad.message.app.group_user_role.GroupUserRole;
 import aad.message.app.role.Role;
 import aad.message.app.role.RoleService;
-import aad.message.app.user.UserWithRoleDTO;
+import aad.message.app.user.UserRoleMessageDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,12 +61,12 @@ public class GroupController {
                 return Responses.notFound("No users found for this group.");
             }
 
-            List<UserWithRoleDTO> userDTOs = usersInGroup.stream().map(groupUser -> {
+            List<UserRoleMessageDTO> userDTOs = usersInGroup.stream().map(groupUser -> {
                 // Get the latest message sent by the user in the group
                 Optional<Message> latestMessage = messageService.getLatestMessageByUser(groupUser.user.id, id);
                 LocalDateTime lastMessageTime = latestMessage.map(msg -> msg.sentDate).orElse(null);
 
-                return new UserWithRoleDTO(groupUser.user, groupUser.role, lastMessageTime);
+                return new UserRoleMessageDTO(groupUser.user, groupUser.role, lastMessageTime);
             }).collect(Collectors.toList());
 
             return ResponseEntity.ok(userDTOs);

@@ -4,7 +4,7 @@ import aad.message.app.role.Role;
 
 import java.time.LocalDateTime;
 
-public class UserWithRoleDTO {
+public class UserRoleMessageDTO {
     public Long id;
     public String username;
     public String firstName;
@@ -13,7 +13,7 @@ public class UserWithRoleDTO {
     public Role role;
     public LocalDateTime lastMessageTime;
 
-    public UserWithRoleDTO(User user, Role role, LocalDateTime lastMessageTime) {
+    public UserRoleMessageDTO(User user, Role role, LocalDateTime lastMessageTime) {
         this.id = user.id;
         this.username = user.username;
         this.firstName = user.firstName;
