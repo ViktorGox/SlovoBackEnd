@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 
 public class UserRoleMessageDTO {
     public Long id;
-    public String username;
     public String firstName;
     public String lastName;
     public String imageUrl;
@@ -15,7 +14,6 @@ public class UserRoleMessageDTO {
 
     public UserRoleMessageDTO(User user, Role role, LocalDateTime lastMessageTime) {
         this.id = user.id;
-        this.username = user.username;
         this.firstName = user.firstName;
         this.lastName = user.lastName;
         this.imageUrl = user.imageUrl;
