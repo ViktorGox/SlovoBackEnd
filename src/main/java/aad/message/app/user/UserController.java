@@ -49,6 +49,15 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<?> searchUser(@RequestParam String query) {
+        Optional<User> user = repository.findByUsername(query)
+                .or(() -> repository.findByEmail(query));
+
+        return user.map(value -> ResponseEntity.ok(new UserDTO(value)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/groups")
     public ResponseEntity<?> getUserGroups() {
         Long userId = getUserId();
