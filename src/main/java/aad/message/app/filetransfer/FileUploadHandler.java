@@ -90,7 +90,7 @@ public class FileUploadHandler {
     private ResponseEntity<?> isFileValid(MultipartFile file, FileType fileType, String fileExtension) {
         switch (fileType) {
             case FileType.MESSAGE_AUDIO -> {
-                List<String> allowedExtensions = List.of("mp3", "wav");
+                List<String> allowedExtensions = List.of("mp3", "wav", "aac");
                 if (!isValidAudioMimeType(file)) return Responses.error("Invalid file type");
                 if (!allowedExtensions.contains(fileExtension)) return Responses.error("Invalid file extension");
             }
@@ -118,7 +118,7 @@ public class FileUploadHandler {
     }
 
     private boolean isValidAudioMimeType(MultipartFile file) {
-        List<String> allowedMimeTypes = List.of("audio/wav", "audio/mpeg");
+        List<String> allowedMimeTypes = List.of("audio/wav", "audio/mpeg", "audio/aac");
         return isValidMimeType(file, allowedMimeTypes);
     }
 
