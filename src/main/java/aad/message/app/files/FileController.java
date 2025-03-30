@@ -25,7 +25,7 @@ public class FileController {
             contentType =  "image/jpeg";
         }
 
-        return getFile("src/main/resources/static/images/", filename, contentType);
+        return getFile(filename, contentType);
     }
 
     @GetMapping("/audio/{filename}")
@@ -39,19 +39,19 @@ public class FileController {
             contentType = "audio/aac";
         }
 
-        return getFile("src/main/resources/static/audio/", filename, contentType);
+        return getFile(filename, contentType);
     }
 
-    private ResponseEntity<byte[]> getFile(String stringPath, String fileName, String mediaType) {
-        Path path = Paths.get(stringPath + "/" + fileName);
+    private ResponseEntity<byte[]> getFile(String fileName, String mediaType) {
+        Path path = Paths.get("uploads/" + fileName);
 
-        if (!Files.exists(path)) Responses.notFound(stringPath);
+        if (!Files.exists(path)) Responses.notFound("uploads/");
 
         byte[] audioBytes = null;
         try {
             audioBytes = Files.readAllBytes(path);
         } catch (IOException e) {
-            Responses.internalError("Something went wrong while reading " + stringPath + ".");
+            Responses.internalError("Something went wrong while reading " + "uploads/" + ".");
         }
 
         HttpHeaders headers = new HttpHeaders();
