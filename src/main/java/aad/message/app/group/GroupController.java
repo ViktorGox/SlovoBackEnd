@@ -54,7 +54,7 @@ public class GroupController {
     }
 
     @GetMapping("/{id}/users")
-    public ResponseEntity<?> getUsersByGroupId(@PathVariable Long id) {
+    public ResponseEntity<?> getUsersByGroupId(@PathVariable Long id, @RequestParam Long userId) {
         try {
             List<GroupUserRole> usersInGroup = groupService.getUsersByGroupId(id);
             if (usersInGroup.isEmpty()) {
@@ -62,12 +62,14 @@ public class GroupController {
             }
 
             List<UserRoleMessageDTO> userDTOs = usersInGroup.stream().map(groupUser -> {
-                // Get the latest message sent by the user in the group
                 Optional<Message> latestMessage = messageService.getLatestMessageByUser(groupUser.user.id, id);
                 LocalDateTime lastMessageTime = latestMessage.map(msg -> msg.sentDate).orElse(null);
 
                 return new UserRoleMessageDTO(groupUser.user, groupUser.role, lastMessageTime);
             }).collect(Collectors.toList());
+
+            // Ensure the requesting user appears first
+            userDTOs.sort((u1, u2) -> u1.id.equals(userId) ? -1 : (u2.id.equals(userId) ? 1 : 0));
 
             return ResponseEntity.ok(userDTOs);
         } catch (Exception e) {
@@ -191,7 +193,7 @@ public class GroupController {
     @PutMapping("/{group_id}/{user_id}/{role_id}")
     public ResponseEntity<?> updateUserRole(@PathVariable("group_id") Long groupId,
                                             @PathVariable("user_id") Long userId,
-                                            @PathVariable("role_id") Long roleId) {
+                                            @PathVariable("role_id") String roleName) {
         try {
             Optional<Group> groupOptional = groupService.getGroupById(groupId);
             if (groupOptional.isEmpty()) {
@@ -205,7 +207,7 @@ public class GroupController {
 
             GroupUserRole groupUserRole = groupUserRoleOptional.get();
 
-            Optional<Role> roleOptional = roleService.getRoleById(roleId);
+            Optional<Role> roleOptional = roleService.getRoleByName(roleName);
             if (roleOptional.isEmpty()) {
                 return Responses.notFound("Role not found.");
             }
