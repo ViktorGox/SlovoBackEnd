@@ -9,9 +9,6 @@ import aad.message.app.message.messagetext.MessageTextRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,19 +22,6 @@ public class MessageService {
         this.messageAudioRepository = messageAudioRepository;
         this.messageTextRepository = messageTextRepository;
         this.messageAudioGroupRepository = messageAudioGroupRepository;
-    }
-
-    public List<Message> getMessagesByGroupId(Long groupId) {
-        List<MessageAudio> audioMessages = messageAudioRepository.findByGroupId(groupId);
-        List<MessageText> textMessages = messageTextRepository.findByGroupId(groupId);
-
-        List<Message> allMessages = new ArrayList<>();
-        allMessages.addAll(audioMessages);
-        allMessages.addAll(textMessages);
-
-        allMessages.sort(Comparator.comparing(m -> m.sentDate));
-
-        return allMessages;
     }
 
     public Optional<Message> getLatestMessageByUser(Long userId, Long groupId) {
