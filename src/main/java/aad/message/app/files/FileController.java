@@ -45,13 +45,13 @@ public class FileController {
     private ResponseEntity<byte[]> getFile(String fileName, String mediaType) {
         Path path = Paths.get("uploads/" + fileName);
 
-        if (!Files.exists(path)) Responses.notFound("uploads/");
+        if (!Files.exists(path)) return ResponseEntity.notFound().build();
 
-        byte[] audioBytes = null;
+        byte[] audioBytes;
         try {
             audioBytes = Files.readAllBytes(path);
         } catch (IOException e) {
-            Responses.internalError("Something went wrong while reading " + "uploads/" + ".");
+            return ResponseEntity.internalServerError().build();
         }
 
         HttpHeaders headers = new HttpHeaders();
