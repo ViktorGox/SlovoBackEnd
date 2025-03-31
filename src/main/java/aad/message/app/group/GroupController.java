@@ -99,18 +99,32 @@ public class GroupController {
 
 
     @PostMapping
-    public ResponseEntity<?> createGroup(@Valid @RequestBody CreateGroupDTO createGroupDTO) {
+    public ResponseEntity<?> createGroup(@Valid @RequestPart(value = "dto") CreateGroupDTO createGroupDTO,
+                                         @RequestPart(value = "file", required = false) MultipartFile file) {
         if (createGroupDTO.name == null || createGroupDTO.name.trim().isEmpty()) {
             return Responses.error("Group name is required.");
         }
 
         try {
             Group createdGroup = groupService.createGroup(createGroupDTO);
+            String imageUrl = "uploads/gp_default.png";
+
+            if (file != null && !file.isEmpty()) {
+                ResponseEntity<?> fileUploadResult = fileUploadHandler.uploadFile(file, FileType.GROUP_PICTURE, createdGroup.id);
+                if (fileUploadResult.getStatusCode() != HttpStatus.OK) return fileUploadResult;
+
+                imageUrl = fileUploadHandler.okFileName(fileUploadResult);
+            }
+            createdGroup.imageUrl = imageUrl;
+
+            groupService.updateGroup(createdGroup);
+
             return ResponseEntity.ok(GroupDTO.fromEntity(createdGroup));
         } catch (Exception e) {
             return Responses.internalError("An error occurred while creating the group.");
         }
     }
+
 
     @PostMapping("/{groupId}/users/{userId}")
     public ResponseEntity<?> addUserToGroup(@PathVariable Long groupId, @PathVariable Long userId) {
