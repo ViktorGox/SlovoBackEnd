@@ -146,7 +146,7 @@ public class GroupController {
 
             groupService.addUserToGroup(groupId, userId);
 
-            return ResponseEntity.ok().body("User added to the group successfully.");
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return Responses.internalError("An error occurred while adding the user to the group.");
         }
@@ -283,7 +283,7 @@ public class GroupController {
 
             groupUserRoleRepository.delete(groupUserRoleOptional.get());
 
-            return ResponseEntity.ok("User removed from the group successfully.");
+            return ResponseEntity.ok().build();
 
         } catch (Exception e) {
             return Responses.internalError("An error occurred while removing the user from the group.");
@@ -319,13 +319,13 @@ public class GroupController {
 
                     groupUserRoleRepository.delete(groupUserRole);
 
-                    return ResponseEntity.ok("You have left the group. Ownership has been transferred.");
+                    return ResponseEntity.ok().build();
                 } else {
                     return Responses.error("There are no admins in the group to transfer ownership.");
                 }
             } else {
                 groupUserRoleRepository.delete(groupUserRole);
-                return ResponseEntity.ok("You have successfully left the group.");
+                return ResponseEntity.ok().build();
             }
 
         } catch (Exception e) {
