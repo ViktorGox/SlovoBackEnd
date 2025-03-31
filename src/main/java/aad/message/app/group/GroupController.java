@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,13 +32,15 @@ public class GroupController {
     private final GroupUserRoleRepository groupUserRoleRepository;
     private final RoleService roleService;
     private final MessageService messageService;
+    private final GroupRepository groupRepository;
 
-    public GroupController(GroupService groupService, FileUploadHandler fileUploadHandler, GroupUserRoleRepository groupUserRoleRepository, RoleService roleService, MessageService messageService) {
+    public GroupController(GroupService groupService, FileUploadHandler fileUploadHandler, GroupUserRoleRepository groupUserRoleRepository, RoleService roleService, MessageService messageService, GroupRepository groupRepository) {
         this.groupService = groupService;
         this.fileUploadHandler = fileUploadHandler;
         this.groupUserRoleRepository = groupUserRoleRepository;
         this.roleService = roleService;
         this.messageService = messageService;
+        this.groupRepository = groupRepository;
     }
 
     @GetMapping("/{id}")
@@ -107,7 +110,7 @@ public class GroupController {
 
         try {
             Group createdGroup = groupService.createGroup(createGroupDTO);
-            String imageUrl = "uploads/gp_default.png";
+            String imageUrl = "gp_default.png";
 
             if (file != null && !file.isEmpty()) {
                 ResponseEntity<?> fileUploadResult = fileUploadHandler.uploadFile(file, FileType.GROUP_PICTURE, createdGroup.id);
@@ -146,7 +149,7 @@ public class GroupController {
 
             groupService.addUserToGroup(groupId, userId);
 
-            return ResponseEntity.ok().body("User added to the group successfully.");
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return Responses.internalError("An error occurred while adding the user to the group.");
         }
@@ -283,7 +286,7 @@ public class GroupController {
 
             groupUserRoleRepository.delete(groupUserRoleOptional.get());
 
-            return ResponseEntity.ok("User removed from the group successfully.");
+            return ResponseEntity.ok().build();
 
         } catch (Exception e) {
             return Responses.internalError("An error occurred while removing the user from the group.");
@@ -313,20 +316,22 @@ public class GroupController {
 
                 if (firstAdmin.isPresent()) {
                     GroupUserRole adminRole = firstAdmin.get();
-
-                    adminRole.role = groupUserRole.role;  // Admin becomes the new owner
+                    adminRole.role = groupUserRole.role;
                     groupUserRoleRepository.save(adminRole);
-
-                    groupUserRoleRepository.delete(groupUserRole);
-
-                    return ResponseEntity.ok("You have left the group. Ownership has been transferred.");
                 } else {
-                    return Responses.error("There are no admins in the group to transfer ownership.");
+                    Optional<GroupUserRole> firstUser = groupUserRoleRepository.findFirstByGroupIdAndRoleName(groupId, "User");
+
+                    if (firstUser.isPresent()) {
+                        GroupUserRole userRole = firstUser.get();
+                        userRole.role = groupUserRole.role;
+                        groupUserRoleRepository.save(userRole);
+                    }
                 }
-            } else {
-                groupUserRoleRepository.delete(groupUserRole);
-                return ResponseEntity.ok("You have successfully left the group.");
             }
+
+            // Remove the user from the group
+            groupUserRoleRepository.delete(groupUserRole);
+            return ResponseEntity.ok().build();
 
         } catch (Exception e) {
             return Responses.internalError("An error occurred while removing yourself from the group.");

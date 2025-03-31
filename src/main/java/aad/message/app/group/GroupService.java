@@ -48,7 +48,7 @@ public class GroupService {
         group.name = createGroupDTO.name;
         group.reminderFrequency = createGroupDTO.reminderFrequency;
         group.reminderStart = createGroupDTO.reminderStart;
-        group.imageUrl = "uploads/gp_default.png";
+        group.imageUrl = "gp_default.png";
         Group savedGroup = groupRepository.save(group);
 
         GroupUserRole ownerGroupUserRole = new GroupUserRole(savedGroup, user, ownerRole);
