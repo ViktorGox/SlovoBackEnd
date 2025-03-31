@@ -107,7 +107,7 @@ public class GroupController {
 
         try {
             Group createdGroup = groupService.createGroup(createGroupDTO);
-            String imageUrl = "uploads/gp_default.png";
+            String imageUrl = "gp_default.png";
 
             if (file != null && !file.isEmpty()) {
                 ResponseEntity<?> fileUploadResult = fileUploadHandler.uploadFile(file, FileType.GROUP_PICTURE, createdGroup.id);
