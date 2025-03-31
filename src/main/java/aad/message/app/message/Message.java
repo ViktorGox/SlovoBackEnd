@@ -4,7 +4,6 @@ import aad.message.app.user.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
