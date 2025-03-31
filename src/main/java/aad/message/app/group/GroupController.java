@@ -3,11 +3,13 @@ package aad.message.app.group;
 import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.group_user_role.GroupUserRoleRepository;
+import aad.message.app.message.Message;
+import aad.message.app.message.MessageService;
 import aad.message.app.returns.Responses;
 import aad.message.app.group_user_role.GroupUserRole;
 import aad.message.app.role.Role;
 import aad.message.app.role.RoleService;
-import aad.message.app.user.UserDTO;
+import aad.message.app.user.UserRoleMessageDTO;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,12 +30,14 @@ public class GroupController {
     private final FileUploadHandler fileUploadHandler;
     private final GroupUserRoleRepository groupUserRoleRepository;
     private final RoleService roleService;
+    private final MessageService messageService;
 
-    public GroupController(GroupService groupService, FileUploadHandler fileUploadHandler, GroupUserRoleRepository groupUserRoleRepository, RoleService roleService) {
+    public GroupController(GroupService groupService, FileUploadHandler fileUploadHandler, GroupUserRoleRepository groupUserRoleRepository, RoleService roleService, MessageService messageService) {
         this.groupService = groupService;
         this.fileUploadHandler = fileUploadHandler;
         this.groupUserRoleRepository = groupUserRoleRepository;
         this.roleService = roleService;
+        this.messageService = messageService;
     }
 
     @GetMapping("/{id}")
@@ -51,18 +56,28 @@ public class GroupController {
     @GetMapping("/{id}/users")
     public ResponseEntity<?> getUsersByGroupId(@PathVariable Long id) {
         try {
+            Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             List<GroupUserRole> usersInGroup = groupService.getUsersByGroupId(id);
             if (usersInGroup.isEmpty()) {
                 return Responses.notFound("No users found for this group.");
             }
-            List<UserDTO> userDTOs = usersInGroup.stream()
-                    .map(groupUser -> new UserDTO(groupUser.user))
-                    .collect(Collectors.toList());
+
+            List<UserRoleMessageDTO> userDTOs = usersInGroup.stream().map(groupUser -> {
+                Optional<Message> latestMessage = messageService.getLatestMessageByUser(groupUser.user.id, id);
+                LocalDateTime lastMessageTime = latestMessage.map(msg -> msg.sentDate).orElse(null);
+
+                return new UserRoleMessageDTO(groupUser.user, groupUser.role, lastMessageTime);
+            }).collect(Collectors.toList());
+
+            // Ensure the requesting user appears first
+            userDTOs.sort((u1, u2) -> u1.id.equals(userId) ? -1 : (u2.id.equals(userId) ? 1 : 0));
+
             return ResponseEntity.ok(userDTOs);
         } catch (Exception e) {
             return Responses.internalError("An error occurred while fetching the users.");
         }
     }
+
 
     @GetMapping("/recentChats")
     public ResponseEntity<?> getRecentChats() {
@@ -84,18 +99,32 @@ public class GroupController {
 
 
     @PostMapping
-    public ResponseEntity<?> createGroup(@Valid @RequestBody Group group) {
-        if (group.name == null || group.name.trim().isEmpty()) {
+    public ResponseEntity<?> createGroup(@Valid @RequestPart(value = "dto") CreateGroupDTO createGroupDTO,
+                                         @RequestPart(value = "file", required = false) MultipartFile file) {
+        if (createGroupDTO.name == null || createGroupDTO.name.trim().isEmpty()) {
             return Responses.error("Group name is required.");
         }
 
         try {
-            Group createdGroup = groupService.createGroup(group);
+            Group createdGroup = groupService.createGroup(createGroupDTO);
+            String imageUrl = "uploads/gp_default.png";
+
+            if (file != null && !file.isEmpty()) {
+                ResponseEntity<?> fileUploadResult = fileUploadHandler.uploadFile(file, FileType.GROUP_PICTURE, createdGroup.id);
+                if (fileUploadResult.getStatusCode() != HttpStatus.OK) return fileUploadResult;
+
+                imageUrl = fileUploadHandler.okFileName(fileUploadResult);
+            }
+            createdGroup.imageUrl = imageUrl;
+
+            groupService.updateGroup(createdGroup);
+
             return ResponseEntity.ok(GroupDTO.fromEntity(createdGroup));
         } catch (Exception e) {
             return Responses.internalError("An error occurred while creating the group.");
         }
     }
+
 
     @PostMapping("/{groupId}/users/{userId}")
     public ResponseEntity<?> addUserToGroup(@PathVariable Long groupId, @PathVariable Long userId) {
@@ -179,7 +208,7 @@ public class GroupController {
     @PutMapping("/{group_id}/{user_id}/{role_id}")
     public ResponseEntity<?> updateUserRole(@PathVariable("group_id") Long groupId,
                                             @PathVariable("user_id") Long userId,
-                                            @PathVariable("role_id") Long roleId) {
+                                            @PathVariable("role_id") String roleName) {
         try {
             Optional<Group> groupOptional = groupService.getGroupById(groupId);
             if (groupOptional.isEmpty()) {
@@ -193,7 +222,7 @@ public class GroupController {
 
             GroupUserRole groupUserRole = groupUserRoleOptional.get();
 
-            Optional<Role> roleOptional = roleService.getRoleById(roleId);
+            Optional<Role> roleOptional = roleService.getRoleByName(roleName);
             if (roleOptional.isEmpty()) {
                 return Responses.notFound("Role not found.");
             }
@@ -207,7 +236,7 @@ public class GroupController {
             groupUserRole.role = newRole;
             groupUserRoleRepository.save(groupUserRole);
 
-            return ResponseEntity.ok("User role updated successfully.");
+            return ResponseEntity.ok().build();
 
         } catch (Exception e) {
             return Responses.internalError("An error occurred while updating the user role.");
