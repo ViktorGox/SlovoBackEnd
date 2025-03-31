@@ -18,17 +18,16 @@ import java.util.stream.Collectors;
 @RequestMapping("/messages")
 public class MessageController {
 
-    private final MessageService messageService;
+    private final MessageRepository messageRepository;
 
     @Autowired
-    public MessageController(MessageService messageService) {
-        this.messageService = messageService;
+    public MessageController(MessageRepository messageRepository) {
+        this.messageRepository = messageRepository;
     }
 
     @GetMapping("/{groupId}")
     public ResponseEntity<?> getMessagesForGroup(@PathVariable Long groupId) {
-
-        List<Message> messages = messageService.getMessagesByGroupId(groupId);
+        List<Message> messages = messageRepository.getMessagesByGroupId(groupId);
 
         List<MessageDTO> messageDTOs = messages.stream()
                 .map(message -> {
