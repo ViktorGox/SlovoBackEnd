@@ -10,11 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -55,12 +55,14 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenDTO refreshTokenDTO) {
-        Long userId = jwtUtils.validateTokenAndGetId(refreshTokenDTO.refreshToken, "refresh");
+    public ResponseEntity<?> refreshToken(@RequestHeader("Authorization") String authorizationHeader) {
+        String refreshToken = authorizationHeader.replace("Bearer ", "");
+
+        Long userId = jwtUtils.validateTokenAndGetId(refreshToken, "refresh");
 
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Collections.singletonMap("error", "Refresh token is expired or invalid"));
+                    .body(Collections.singletonMap("error", "Refresh token is expired, invalid, or doesn't exist in the database"));
         }
 
         Optional<User> user = repository.findById(userId);
