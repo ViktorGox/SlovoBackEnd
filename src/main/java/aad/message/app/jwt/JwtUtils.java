@@ -6,6 +6,7 @@ import aad.message.app.user.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -19,10 +20,13 @@ public class JwtUtils {
     private static final long REFRESH_TOKEN_EXPIRATION = 604800000; // 7 days
     private final Key key;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
+
 
     public JwtUtils(@Value("${jwt.secret}") String secretKey, RefreshTokenRepository refreshTokenRepository) {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
         this.refreshTokenRepository = refreshTokenRepository;
+        this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
     public String generateAccessToken(Long userId) {
@@ -47,8 +51,10 @@ public class JwtUtils {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
+        String hashedRefreshToken = passwordEncoder.encode(refreshToken);
+
         Date refreshTokenExpiryDate = new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION);
-        RefreshToken newRefreshTokenObj = new RefreshToken(refreshToken, user, refreshTokenExpiryDate);
+        RefreshToken newRefreshTokenObj = new RefreshToken(hashedRefreshToken, user, refreshTokenExpiryDate);
         refreshTokenRepository.save(newRefreshTokenObj);
 
         return refreshToken;
@@ -70,7 +76,18 @@ public class JwtUtils {
                 return null; // Invalid type, should return 401
             }
 
-            return Long.parseLong(claims.getSubject());
+            Long userId = Long.parseLong(claims.getSubject());
+
+            //If the token is a refresh token, check the database for its validity
+            if (expectedType.equals("refresh")) {
+                Optional<RefreshToken> storedRefreshToken = refreshTokenRepository.findByUserId(userId);
+
+                if (storedRefreshToken.isEmpty() || !passwordEncoder.matches(token, storedRefreshToken.get().token)) {
+                    return null; // Token does not exist in the DB or doesn't match
+                }
+            }
+
+            return userId; // Token is valid, return the user ID
         } catch (ExpiredJwtException | SignatureException | MalformedJwtException e) {
             return null; // Token is expired or tampered with
         }

@@ -1,8 +1,7 @@
 package aad.message.app.auth;
 
 import aad.message.app.jwt.JwtUtils;
-import aad.message.app.refresh_token.RefreshToken;
-import aad.message.app.refresh_token.RefreshTokenRepository;
+import aad.message.app.refresh_token.RefreshTokenDTO;
 import aad.message.app.user.User;
 import aad.message.app.user.UserRepository;
 import jakarta.validation.Valid;
@@ -56,8 +55,8 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@RequestBody String refreshToken) {
-        Long userId = jwtUtils.validateTokenAndGetId(refreshToken, "refresh");
+    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenDTO refreshTokenDTO) {
+        Long userId = jwtUtils.validateTokenAndGetId(refreshTokenDTO.refreshToken, "refresh");
 
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
