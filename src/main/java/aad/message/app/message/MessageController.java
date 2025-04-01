@@ -30,7 +30,7 @@ public class MessageController {
     public ResponseEntity<?> getMessagesForGroup(@PathVariable Long groupId, @PathVariable int page) {
         Pageable pageable = PageRequest.of(page, 15, Sort.by("sentDate").descending());
         Page<Message> messagesPage = messageRepository.getMessagesByGroupId(groupId, pageable);
-        List<Message> messages = messagesPage.getContent().reversed();
+        List<Message> messages = messagesPage.getContent();
 
         List<MessageDTO> messageDTOs = messages.stream()
                 .map(message -> {
