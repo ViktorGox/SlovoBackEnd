@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -98,7 +99,15 @@ public class UserController {
                                           //  method within an if check to not delete the default image
 
         User savedUser = repository.save(user);
-        return Responses.ok("token", jwtUtils.generateToken(savedUser.id));
+
+        String accessToken = jwtUtils.generateAccessToken(savedUser.id);
+        String refreshToken = jwtUtils.generateRefreshToken(savedUser);
+
+        return ResponseEntity.ok()
+                .body(Map.of(
+                        "accessToken", accessToken,
+                        "refreshToken", refreshToken
+                ));
     }
 
     // TODO: Didn't delete the old image once, couldn't replicate it afterwards though.

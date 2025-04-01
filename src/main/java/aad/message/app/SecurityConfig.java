@@ -30,6 +30,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST,"/refresh-token").permitAll()
                         .requestMatchers(HttpMethod.POST, "/users").permitAll()
                         .requestMatchers("/login","/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                         .permitAll()

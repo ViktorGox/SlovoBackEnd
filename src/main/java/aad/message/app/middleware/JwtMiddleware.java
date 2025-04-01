@@ -44,7 +44,7 @@ public class JwtMiddleware extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
 
-            id = jwtUtils.validateTokenAndGetId(token);
+            id = jwtUtils.validateTokenAndGetId(token, "access");
         }
 
         if (id != null && SecurityContextHolder.getContext().getAuthentication() == null) {

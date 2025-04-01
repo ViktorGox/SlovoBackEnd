@@ -9,9 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -40,6 +42,38 @@ public class AuthController {
                     .body(Collections.singletonMap("error", "Invalid username or password"));
         }
 
-        return ResponseEntity.ok().body(Collections.singletonMap("token", jwtUtils.generateToken(user.get().id)));
+        String accessToken = jwtUtils.generateAccessToken(user.get().id);
+        String refreshToken = jwtUtils.generateRefreshToken(user.get());
+
+        // Return both tokens in the response
+        return ResponseEntity.ok()
+                .body(Map.of(
+                        "accessToken", accessToken,
+                        "refreshToken", refreshToken
+                ));
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestHeader("Authorization") String authorizationHeader) {
+        String refreshToken = authorizationHeader.replace("Bearer ", "");
+
+        Long userId = jwtUtils.validateTokenAndGetId(refreshToken, "refresh");
+
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("error", "Refresh token is expired, invalid, or doesn't exist in the database"));
+        }
+
+        Optional<User> user = repository.findById(userId);
+        if (user.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("error", "User not found"));
+        }
+
+        String newAccessToken = jwtUtils.generateAccessToken(user.get().id);
+
+        return ResponseEntity.ok().body(Map.of(
+                "accessToken", newAccessToken
+        ));
     }
 }
