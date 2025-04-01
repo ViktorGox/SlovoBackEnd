@@ -11,18 +11,30 @@ import java.nio.charset.StandardCharsets;
 
 @Service
 public class JwtUtils {
-    private static final long EXPIRATION = 86400000;
+    private static final long ACCESS_TOKEN_EXPIRATION = 900000; // 15 min
+    private static final long REFRESH_TOKEN_EXPIRATION = 604800000; // 7 days
     private final Key key;
 
     public JwtUtils(@Value("${jwt.secret}") String secretKey) {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(Long id) {
+    public String generateAccessToken(Long userId) {
         return Jwts.builder()
-                .setSubject(String.valueOf(id))
+                .setSubject(String.valueOf(userId))
+                .claim("type", "access")
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + (EXPIRATION * 1000L)))
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String generateRefreshToken(Long userId) {
+        return Jwts.builder()
+                .setSubject(String.valueOf(userId))
+                .claim("type", "refresh")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }

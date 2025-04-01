@@ -98,7 +98,7 @@ public class UserController {
                                           //  method within an if check to not delete the default image
 
         User savedUser = repository.save(user);
-        return Responses.ok("token", jwtUtils.generateToken(savedUser.id));
+        return Responses.ok("token", jwtUtils.generateAccessToken(savedUser.id));
     }
 
     // TODO: Didn't delete the old image once, couldn't replicate it afterwards though.

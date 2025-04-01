@@ -40,6 +40,6 @@ public class AuthController {
                     .body(Collections.singletonMap("error", "Invalid username or password"));
         }
 
-        return ResponseEntity.ok().body(Collections.singletonMap("token", jwtUtils.generateToken(user.get().id)));
+        return ResponseEntity.ok().body(Collections.singletonMap("token", jwtUtils.generateAccessToken(user.get().id)));
     }
 }
