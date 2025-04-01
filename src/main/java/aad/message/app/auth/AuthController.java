@@ -1,6 +1,8 @@
 package aad.message.app.auth;
 
 import aad.message.app.jwt.JwtUtils;
+import aad.message.app.refresh_token.RefreshToken;
+import aad.message.app.refresh_token.RefreshTokenRepository;
 import aad.message.app.user.User;
 import aad.message.app.user.UserRepository;
 import jakarta.validation.Valid;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -50,5 +53,27 @@ public class AuthController {
                         "accessToken", accessToken,
                         "refreshToken", refreshToken
                 ));
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestBody String refreshToken) {
+        Long userId = jwtUtils.validateTokenAndGetId(refreshToken, "refresh");
+
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("error", "Refresh token is expired or invalid"));
+        }
+
+        Optional<User> user = repository.findById(userId);
+        if (user.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("error", "User not found"));
+        }
+
+        String newAccessToken = jwtUtils.generateAccessToken(user.get().id);
+
+        return ResponseEntity.ok().body(Map.of(
+                "accessToken", newAccessToken
+        ));
     }
 }

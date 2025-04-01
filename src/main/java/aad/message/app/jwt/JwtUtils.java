@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.util.Date;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 @Service
 public class JwtUtils {
@@ -35,6 +36,9 @@ public class JwtUtils {
     }
 
     public String generateRefreshToken(User user) {
+        Optional<RefreshToken> existingRefreshToken = refreshTokenRepository.findByUser(user);
+        existingRefreshToken.ifPresent(refreshTokenRepository::delete);
+
         String refreshToken = Jwts.builder()
                 .setSubject(String.valueOf(user.id))
                 .claim("type", "refresh")
@@ -44,10 +48,8 @@ public class JwtUtils {
                 .compact();
 
         Date refreshTokenExpiryDate = new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION);
-
-        // Create and save the refresh token in the database
-        RefreshToken refreshTokenObj = new RefreshToken(refreshToken, user, refreshTokenExpiryDate);
-        refreshTokenRepository.save(refreshTokenObj);
+        RefreshToken newRefreshTokenObj = new RefreshToken(refreshToken, user, refreshTokenExpiryDate);
+        refreshTokenRepository.save(newRefreshTokenObj);
 
         return refreshToken;
     }
