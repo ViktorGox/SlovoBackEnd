@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -40,6 +41,14 @@ public class AuthController {
                     .body(Collections.singletonMap("error", "Invalid username or password"));
         }
 
-        return ResponseEntity.ok().body(Collections.singletonMap("token", jwtUtils.generateAccessToken(user.get().id)));
+        String accessToken = jwtUtils.generateAccessToken(user.get().id);
+        String refreshToken = jwtUtils.generateRefreshToken(user.get());
+
+        // Return both tokens in the response
+        return ResponseEntity.ok()
+                .body(Map.of(
+                        "accessToken", accessToken,
+                        "refreshToken", refreshToken
+                ));
     }
 }
