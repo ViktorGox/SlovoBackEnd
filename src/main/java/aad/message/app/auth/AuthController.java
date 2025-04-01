@@ -1,7 +1,6 @@
 package aad.message.app.auth;
 
 import aad.message.app.jwt.JwtUtils;
-import aad.message.app.refresh_token.RefreshTokenDTO;
 import aad.message.app.user.User;
 import aad.message.app.user.UserRepository;
 import jakarta.validation.Valid;
