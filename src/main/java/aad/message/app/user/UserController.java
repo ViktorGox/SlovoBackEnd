@@ -7,7 +7,6 @@ import aad.message.app.group.GroupDTO;
 import aad.message.app.group_user_role.GroupUserRoleRepository;
 import aad.message.app.jwt.JwtUtils;
 import aad.message.app.returns.Responses;
-import jakarta.validation.Valid;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +15,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,17 +28,19 @@ public class UserController {
     private final ApplicationContext context;
     private final FileUploadHandler fileUploadHandler;
     private final GroupUserRoleRepository groupUserRoleRepository;
+    private final UserRepository userRepository;
 
     public UserController(UserRepository repository,
                           ApplicationContext context,
                           FileUploadHandler fileUploadHandler,
                           JwtUtils jwtUtils,
-                          GroupUserRoleRepository groupUserRoleRepository) {
+                          GroupUserRoleRepository groupUserRoleRepository, UserRepository userRepository) {
         this.repository = repository;
         this.context = context;
         this.fileUploadHandler = fileUploadHandler;
         this.jwtUtils = jwtUtils;
         this.groupUserRoleRepository = groupUserRoleRepository;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -76,15 +76,13 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<?> register(@Valid @RequestBody UserRegisterDTO dto) {
-        Collection<String> missingFields = UserRegisterDTO.verify(dto);
-        if (!missingFields.isEmpty()) return Responses.incompleteBody(missingFields);
-
+    public ResponseEntity<?> register(@RequestPart(value = "dto") UserRegisterDTO dto,
+                                      @RequestPart(value = "file", required = false) MultipartFile file) {
         UserService userService = context.getBean(UserService.class);
-        boolean isUnique = userService.isUserUnique(dto);
+        String uniquenessError = userService.checkUserUniqueness(dto);
 
-        if (!isUnique) {
-            return Responses.error("Either the email or username is already in use.");
+        if (uniquenessError != null) {
+            return Responses.error(uniquenessError);
         }
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -95,10 +93,19 @@ public class UserController {
         user.password = passwordEncoder.encode(dto.password);
         user.email = dto.email;
 
-        user.imageUrl = "pf_default.png"; // TODO: Set real image as default. Keep the name, used in the update
-                                          //  method within an if check to not delete the default image
+        user.imageUrl = "pf_default.png";
 
         User savedUser = repository.save(user);
+
+        if (file != null && !file.isEmpty()) {
+            ResponseEntity<?> fileUploadResult = fileUploadHandler.uploadFile(file, FileType.PROFILE_PICTURE, savedUser.id);
+            if (fileUploadResult.getStatusCode() != HttpStatus.OK) return fileUploadResult;
+
+
+            savedUser.imageUrl = fileUploadHandler.okFileName(fileUploadResult);
+
+            userRepository.save(savedUser);
+        }
 
         String accessToken = jwtUtils.generateAccessToken(savedUser.id);
         String refreshToken = jwtUtils.generateRefreshToken(savedUser);

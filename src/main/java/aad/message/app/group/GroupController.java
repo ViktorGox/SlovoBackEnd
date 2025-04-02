@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -32,15 +31,13 @@ public class GroupController {
     private final GroupUserRoleRepository groupUserRoleRepository;
     private final RoleService roleService;
     private final MessageService messageService;
-    private final GroupRepository groupRepository;
 
-    public GroupController(GroupService groupService, FileUploadHandler fileUploadHandler, GroupUserRoleRepository groupUserRoleRepository, RoleService roleService, MessageService messageService, GroupRepository groupRepository) {
+    public GroupController(GroupService groupService, FileUploadHandler fileUploadHandler, GroupUserRoleRepository groupUserRoleRepository, RoleService roleService, MessageService messageService) {
         this.groupService = groupService;
         this.fileUploadHandler = fileUploadHandler;
         this.groupUserRoleRepository = groupUserRoleRepository;
         this.roleService = roleService;
         this.messageService = messageService;
-        this.groupRepository = groupRepository;
     }
 
     @GetMapping("/{id}")
@@ -90,7 +87,7 @@ public class GroupController {
             List<RecentChatDTO> recentChats = groupService.getRecentChatsForUser(userId);
 
             if (recentChats.isEmpty()) {
-                return Responses.notFound("No groups found for this user.");
+                return Responses.notFound("No groups found. Try to create a new one.");
             }
 
             return ResponseEntity.ok(recentChats);

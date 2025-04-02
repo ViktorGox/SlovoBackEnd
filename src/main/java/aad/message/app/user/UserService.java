@@ -26,8 +26,20 @@ public class UserService {
         return userRepository.findById(id);
     }
 
-    public boolean isUserUnique(UserRegisterDTO user) {
+    public String checkUserUniqueness(UserRegisterDTO user) {
         Optional<User> existingUser = userRepository.findByUsernameOrEmail(user.username, user.email);
-        return existingUser.isEmpty();
+
+        if (existingUser.isPresent()) {
+            User existing = existingUser.get();
+
+            if (existing.username.equals(user.username)) {
+                return "Username is already taken.";
+            }
+            if (existing.email.equals(user.email)) {
+                return "Email is already registered.";
+            }
+        }
+
+        return null; // No conflicts found
     }
 }
