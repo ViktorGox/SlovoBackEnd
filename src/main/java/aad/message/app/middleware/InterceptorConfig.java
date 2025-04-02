@@ -10,15 +10,19 @@ public class InterceptorConfig implements WebMvcConfigurer {
     private final GroupAccessInterceptor groupAccessInterceptor;
     private final AdminOwnerInterceptor adminOwnerInterceptor;
     private final AdminCannotModifyOwnerInterceptor adminCannotModifyOwnerInterceptor;
+    private final RegisterInterceptor registerInterceptor;
 
-    public InterceptorConfig(GroupAccessInterceptor groupAccessInterceptor, AdminOwnerInterceptor adminOwnerInterceptor, AdminCannotModifyOwnerInterceptor adminCannotModifyOwnerInterceptor) {
+    public InterceptorConfig(GroupAccessInterceptor groupAccessInterceptor, AdminOwnerInterceptor adminOwnerInterceptor, AdminCannotModifyOwnerInterceptor adminCannotModifyOwnerInterceptor, RegisterInterceptor registerInterceptor) {
         this.groupAccessInterceptor = groupAccessInterceptor;
         this.adminOwnerInterceptor = adminOwnerInterceptor;
         this.adminCannotModifyOwnerInterceptor = adminCannotModifyOwnerInterceptor;
+        this.registerInterceptor = registerInterceptor;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(registerInterceptor)
+                .addPathPatterns("/users");
         registry.addInterceptor(groupAccessInterceptor)
                 .addPathPatterns("/groups/**",
                         "/messages/{id:\\d+}")
