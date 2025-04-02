@@ -122,26 +122,29 @@ public class UserController {
     public ResponseEntity<?> update(@RequestPart(value = "file", required = false) MultipartFile file,
                                     @RequestPart(value = "dto", required = false) UserUpdateDTO dto) {
         Long userId = getUserId();
-        Optional<User> user = repository.findById(userId);
+        Optional<User> userOptional = repository.findById(userId);
 
-        if (user.isEmpty()) return Responses.notFound("User with id " + userId + " not found");
+        if (userOptional.isEmpty()) return Responses.notFound("User with id " + userId + " not found");
+
+        User user = userOptional.get();
 
         // Uploading a new file is not mandatory, only do something if a file has been sent.
         if(file != null) {
             ResponseEntity<?> fileUploadResult = fileUploadHandler.uploadFile(file, FileType.PROFILE_PICTURE, userId);
             if (fileUploadResult.getStatusCode() != HttpStatus.OK) return fileUploadResult;
 
-            fileUploadHandler.handleOkResponse(fileUploadResult, user.get(), FileType.PROFILE_PICTURE);
+            fileUploadHandler.handleOkResponse(fileUploadResult, user, FileType.PROFILE_PICTURE);
         }
 
         // Only change data if a data has been sent, as it is not mandatory.
         if(dto != null) {
-            if (dto.firstName != null) user.get().firstName = dto.firstName;
-            if (dto.lastName != null) user.get().lastName = dto.lastName;
+            if (dto.firstName != null) user.firstName = dto.firstName;
+            if (dto.lastName != null) user.lastName = dto.lastName;
+            if (dto.email != null) user.email = dto.email;
         }
 
-        repository.save(user.get());
-        return ResponseEntity.ok().body(new UserDTO(user.get()));
+        repository.save(user);
+        return ResponseEntity.ok().body(new UserDTO(userOptional.get()));
     }
 
     /**
