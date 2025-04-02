@@ -21,7 +21,7 @@ public abstract class Message {
     @Column(name = "sent_date", nullable = false)
     public LocalDateTime sentDate;
 
-    @Column(name = "message_type", nullable = false, insertable=false, updatable=false)
+    @Column(name = "message_type", nullable = false, insertable = false, updatable = false)
     @Enumerated(EnumType.STRING)
     public MessageType messageType;
 
@@ -29,4 +29,3 @@ public abstract class Message {
     @JoinColumn(name = "reply_to_message_id")
     public Message replyMessage;
 }
-
