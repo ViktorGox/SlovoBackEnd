@@ -2,6 +2,7 @@ stages:
   - build
 
 build_image:
+  image: docker:24.0.5
   stage: build
   only:
     - B-20-dockerize-and-deploy
