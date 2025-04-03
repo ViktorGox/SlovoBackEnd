@@ -1,5 +1,5 @@
 services:
-  app:
+  slovo-backend:
     build: .
     container_name: slovo-backend-app
     ports:

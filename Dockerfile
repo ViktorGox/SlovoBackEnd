@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jdk AS builder
+FROM gradle:8.5-jdk21 AS builder
 WORKDIR /app
 
 COPY . .
