@@ -18,6 +18,7 @@ public class SlovoWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) {
+        System.out.println("Slovo Socket: text message received " + message.getPayload());
         String payload = message.getPayload();
         String[] parts = payload.split(" ");
 
@@ -29,20 +30,24 @@ public class SlovoWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void addSessionToGroup(Long groupId, WebSocketSession session) {
+        System.out.println("Adding a seession to a group. " + groupId);
         groupSessions.computeIfAbsent(groupId, k -> new HashSet<>()).add(session);
     }
 
-    public void sendMessageToGroup(Long groupId) {
-        sendMessageToGroups(List.of(groupId));
+    public void sendMessageToGroup(Long groupId, Long relevantId) {
+        sendMessageToGroups(List.of(groupId), relevantId);
     }
 
-    public void sendMessageToGroups(Iterable<Long> groupIds) {
+    public void sendMessageToGroups(Iterable<Long> groupIds, Long relevantId) {
+        System.out.println("Sending a message to a client NEW_MESSAGE " + relevantId);
+
         for (Long groupId : groupIds) {
             Set<WebSocketSession> sessions = groupSessions.get(groupId);
             if (sessions != null) {
                 for (WebSocketSession session : sessions) {
                     try {
-                        session.sendMessage(new TextMessage("NEW_MESSAGE"));
+                        session.sendMessage(new TextMessage("NEW_MESSAGE " + relevantId));
+                        System.out.println("Successfully sent the message. ");
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -51,11 +56,10 @@ public class SlovoWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    // Optionally, remove session when disconnected
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        // Remove session from all groups it was part of
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         for (Set<WebSocketSession> sessions : groupSessions.values()) {
+            System.out.println("Removing a session.");
             sessions.remove(session);
         }
     }

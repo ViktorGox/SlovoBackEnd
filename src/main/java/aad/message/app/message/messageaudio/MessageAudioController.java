@@ -113,7 +113,7 @@ public class MessageAudioController {
 
         transcriptionService.transcribeAudio(message);
 
-        webSocketHandler.sendMessageToGroups(dto.groupIds);
+        webSocketHandler.sendMessageToGroups(dto.groupIds, message.id);
 
         return ResponseEntity.ok(new MessageAudioDTO(message));
     }

@@ -75,7 +75,7 @@ public class MessageTextController {
 
         messageTextRepository.save(message);
 
-        webSocketHandler.sendMessageToGroup(dto.groupId);
+        webSocketHandler.sendMessageToGroup(dto.groupId, message.id);
 
         return ResponseEntity.ok(new MessageTextDTO(message));
     }
