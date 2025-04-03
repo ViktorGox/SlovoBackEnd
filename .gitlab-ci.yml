@@ -3,6 +3,8 @@ stages:
 
 build_image:
   image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
   stage: build
   only:
     - B-20-dockerize-and-deploy
