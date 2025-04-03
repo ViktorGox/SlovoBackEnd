@@ -88,7 +88,7 @@ public class MessageAudioController {
         message.sentDate = LocalDateTime.now(ZoneOffset.UTC);
 
         if (dto.replyMessageId != null) {
-            Optional<Message> reply = messageRepository.findMessageById(dto.replyMessageId);
+            Optional<Message> reply = messageRepository.findById(dto.replyMessageId);
             if (reply.isPresent()) {
                 message.replyMessage = reply.get();
             }

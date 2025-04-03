@@ -66,7 +66,7 @@ public class MessageTextController {
         message.sentDate = LocalDateTime.now(ZoneOffset.UTC);
 
         if (dto.replyMessageId != null) {
-            Optional<Message> reply = messageRepository.findMessageById(dto.replyMessageId);
+            Optional<Message> reply = messageRepository.findById(dto.replyMessageId);
             reply.ifPresent(value -> message.replyMessage = value);
         }
         message.messageType = MessageType.text;
