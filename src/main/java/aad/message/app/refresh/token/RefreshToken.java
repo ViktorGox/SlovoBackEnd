@@ -1,4 +1,4 @@
-package aad.message.app.refresh_token;
+package aad.message.app.refresh.token;
 
 import aad.message.app.user.User;
 import jakarta.persistence.*;

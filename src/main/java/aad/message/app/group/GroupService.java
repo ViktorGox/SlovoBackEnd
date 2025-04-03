@@ -1,7 +1,7 @@
 package aad.message.app.group;
 
-import aad.message.app.group_user_role.GroupUserRole;
-import aad.message.app.group_user_role.GroupUserRoleRepository;
+import aad.message.app.group.user.role.GroupUserRole;
+import aad.message.app.group.user.role.GroupUserRoleRepository;
 import aad.message.app.message.Message;
 import aad.message.app.message.MessageService;
 import aad.message.app.message.RecentMessageDTO;
@@ -10,7 +10,7 @@ import aad.message.app.role.Role;
 import aad.message.app.role.RoleRepository;
 import aad.message.app.user.User;
 import aad.message.app.user.UserRepository;
-import aad.message.app.group_user_role.UserRoleDTO;
+import aad.message.app.group.user.role.UserRoleDTO;
 import jakarta.transaction.Transactional;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;

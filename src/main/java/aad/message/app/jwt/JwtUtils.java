@@ -1,7 +1,7 @@
 package aad.message.app.jwt;
 
-import aad.message.app.refresh_token.RefreshToken;
-import aad.message.app.refresh_token.RefreshTokenRepository;
+import aad.message.app.refresh.token.RefreshToken;
+import aad.message.app.refresh.token.RefreshTokenRepository;
 import aad.message.app.user.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

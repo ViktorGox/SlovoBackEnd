@@ -34,7 +34,7 @@ dependencies {
 }
 
 application {
-	mainClass = 'aad.Application'
+	mainClass = 'aad.message.app.Application'
 }
 
 //tasks.named('test') {

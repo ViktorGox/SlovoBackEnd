@@ -3,7 +3,7 @@ package aad.message.app.message.messageaudio;
 import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.group.GroupRepository;
-import aad.message.app.group_user_role.GroupUserRoleRepository;
+import aad.message.app.group.user.role.GroupUserRoleRepository;
 import aad.message.app.message.Message;
 import aad.message.app.message.MessageRepository;
 import aad.message.app.message.MessageType;
