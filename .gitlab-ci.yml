@@ -24,13 +24,12 @@ terraform:
 
   artifacts:
     paths:
-      - $CI_PROJECT_DIR/aad/terraform.tfstate
-    expire_in: 1 hour
+      - $CI_PROJECT_DIR/140/terraform.tfstate
 
   cache:
     key: "terraform-cache-2025-33dd"
     paths:
-      - $CI_PROJECT_DIR/aad/terraform.tfstate
+      - $CI_PROJECT_DIR/140/terraform.tfstate
 
 build_image:
   image: docker:24.0.5
