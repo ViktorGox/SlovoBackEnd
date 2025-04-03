@@ -1,0 +1,19 @@
+stages:
+  - build
+
+build_image:
+  stage: build
+  only:
+    - B-20-dockerize-and-deploy
+  script:
+    - echo "Logging into GitLab Container Registry..."
+    - echo "$CI_JOB_TOKEN" | docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY
+
+    - echo "Building Docker image with docker-compose..."
+    - docker-compose build
+
+    - IMAGE_NAME=$(docker images --format "{{.Repository}}:{{.Tag}}" | head -n 1)
+    - echo "Built image: $IMAGE_NAME"
+
+    - docker tag $IMAGE_NAME $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:latest
