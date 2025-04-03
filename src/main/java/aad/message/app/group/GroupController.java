@@ -97,7 +97,6 @@ public class GroupController {
         }
     }
 
-
     @PostMapping
     public ResponseEntity<?> createGroup(@Valid @RequestPart(value = "dto") CreateGroupDTO createGroupDTO,
                                          @RequestPart(value = "file", required = false) MultipartFile file) {
