@@ -1,5 +1,30 @@
 stages:
+  - terraform
   - build
+
+terraform:
+  image: hashicorp/terraform:latest
+  stage: terraform
+  script:
+    - echo "Configuring AWS credentials"
+    - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+    - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+    - aws configure set aws_session_token $AWS_SESSION_TOKEN
+    - aws configure set region us-west-2
+
+    - terraform init
+    - terraform plan -out=plan.tfplan
+    - terraform apply -auto-approve plan.tfplan
+
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/aad/terraform.tfstate
+    expire_in: 1 hour
+
+  cache:
+    key: "terraform-cache-2025-33dd"
+    paths:
+      - $CI_PROJECT_DIR/aad/terraform.tfstate
 
 build_image:
   image: docker:24.0.5
