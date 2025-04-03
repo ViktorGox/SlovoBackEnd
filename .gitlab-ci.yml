@@ -7,7 +7,7 @@ terraform:
   image: ubuntu:latest
   script:
     - apt-get update && apt-get install -y curl jq unzip
-    - curl -o /tmp/terraform.zip -LO https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
+    - curl -o /tmp/terraform.zip -LO https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
     - unzip /tmp/terraform.zip -d /usr/local/bin/
     - chmod +x /usr/local/bin/terraform
     - terraform --version
