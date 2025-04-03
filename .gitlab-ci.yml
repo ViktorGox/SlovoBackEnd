@@ -13,7 +13,6 @@ build_image:
     - docker-compose build
 
     - IMAGE_NAME=$(docker images --format "{{.Repository}}:{{.Tag}}" | head -n 1)
-    - echo "Built image: $IMAGE_NAME"
 
     - docker tag $IMAGE_NAME $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
