@@ -3,14 +3,20 @@ stages:
   - build
 
 terraform:
-  image: hashicorp/terraform:latest
   stage: terraform
+  image: ubuntu:latest
   script:
-    - echo "Configuring AWS credentials"
-    - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-    - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-    - aws configure set aws_session_token $AWS_SESSION_TOKEN
-    - aws configure set region us-west-2
+    - apt-get update && apt-get install -y curl jq unzip
+    - curl -o /tmp/terraform.zip -LO https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
+    - unzip /tmp/terraform.zip -d /usr/local/bin/
+    - chmod +x /usr/local/bin/terraform
+    - terraform --version
+    - mkdir -p ~/.aws
+    - echo "[default]" > ~/.aws/credentials
+    - echo "aws_access_key_id=$MY_AWS_ACCESS_KEY_ID" >> ~/.aws/credentials
+    - echo "aws_secret_access_key=$MY_AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+    - echo "aws_session_token=$MY_AWS_SESSION_TOKEN" >> ~/.aws/credentials
+    - cat ~/.aws/credentials
 
     - terraform init
     - terraform plan -out=plan.tfplan
