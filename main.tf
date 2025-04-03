@@ -135,18 +135,40 @@ resource "aws_key_pair" "my_key_pair" {
   public_key = tls_private_key.my_key.public_key_openssh
 }
 
+data "template_file" "sql_script" {
+  template = file("database.sql")
+}
+
+data "template_file" "start_script" {
+  template = file("start.sh")
+
+  vars = {
+    SQL_SCRIPT_CONTENT = data.template_file.sql_script.rendered
+    DB_PASSWORD        = aws_db_instance.my_rds_instance.password
+    DB_ENDPOINT        = aws_db_instance.my_rds_instance.address
+    DB_USERNAME        = aws_db_instance.my_rds_instance.username
+    DB_NAME            = aws_db_instance.my_rds_instance.db_name
+  }
+}
+
 resource "aws_instance" "my_instance" {
   ami           = "ami-08116b9957a259459"
   instance_type = "t2.micro"
   subnet_id     = aws_subnet.my_subnet_az1.id
   key_name      = aws_key_pair.my_key_pair.key_name
-
   vpc_security_group_ids = [aws_security_group.my_security_group.id]
 
+  user_data = data.template_file.start_script.rendered
+
   tags = {
-    Name = "MyEC2Instance"
+    Name = "Instance"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
+
 
 output "instance_public_ip" {
   value = aws_instance.my_instance.public_ip
@@ -155,4 +177,8 @@ output "instance_public_ip" {
 output "private_key" {
   value     = tls_private_key.my_key.private_key_pem
   sensitive = true
+}
+
+output "db_address" {
+  value = aws_db_instance.my_rds_instance.address
 }
