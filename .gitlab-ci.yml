@@ -1,5 +1,6 @@
 stages:
   - terraform
+  - output
   - build
   - deploy
   - deploy_prod
@@ -11,42 +12,72 @@ terraform:
     - apt-get update && apt-get install -y curl jq unzip
     - curl -o /tmp/terraform.zip -LO https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
     - unzip /tmp/terraform.zip -d /usr/local/bin/
-    - chmod +x /usr/local/bin/terraform
     - terraform --version
+
     - mkdir -p ~/.aws
     - echo "[default]" > ~/.aws/credentials
     - echo "aws_access_key_id=$MY_AWS_ACCESS_KEY_ID" >> ~/.aws/credentials
     - echo "aws_secret_access_key=$MY_AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials
     - echo "aws_session_token=$MY_AWS_SESSION_TOKEN" >> ~/.aws/credentials
-    - cat ~/.aws/credentials
 
     - terraform init
     - terraform plan -out=plan.tfplan
     - terraform apply -auto-approve plan.tfplan
+  artifacts:
+    paths:
+      - terraform.tfstate
+  cache:
+    key: "terraform-cache-2025-33dd"
+    paths:
+      - $CI_PROJECT_DIR/terraform.tfstate
 
-    - echo "Saving Terraform outputs as CI/CD variables..."
+extract_outputs_dev:
+  stage: output
+  image: ubuntu:latest
+  dependencies:
+    - terraform
+  script:
+    - apt-get update && apt-get install -y curl unzip
+    - curl -o /tmp/terraform.zip -LO https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
+    - unzip /tmp/terraform.zip -d /usr/local/bin/
+    - mkdir -p ~/.aws
+    - echo "[default]" > ~/.aws/credentials
+    - echo "aws_access_key_id=$MY_AWS_ACCESS_KEY_ID" >> ~/.aws/credentials
+    - echo "aws_secret_access_key=$MY_AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+    - echo "aws_session_token=$MY_AWS_SESSION_TOKEN" >> ~/.aws/credentials
+    - terraform init
     - echo "DB_URL=$(terraform output -raw db_url)" >> variables.env
     - echo "DB_USERNAME=$(terraform output -raw db_username)" >> variables.env
     - echo "DB_PASSWORD=$(terraform output -raw db_password)" >> variables.env
     - echo "EC2_PUBLIC_IP=$(terraform output -raw ec2_public_ip)" >> variables.env
     - echo "PRIVATE_KEY=$(terraform output -raw private_key | base64 | tr -d '\n')" >> variables.env
-    - echo "DB_URL_PROD=$(terraform output -raw db_url_prod)" >> variables.env
-    - echo "DB_USERNAME_PROD=$(terraform output -raw db_username_prod)" >> variables.env
-    - echo "DB_PASSWORD_PROD=$(terraform output -raw db_password_prod)" >> variables.env
-    - echo "EC2_PUBLIC_IP_PROD=$(terraform output -raw ec2_public_ip_prod)" >> variables.env
-    - echo "PRIVATE_KEY_PROD=$(terraform output -raw private_key_prod | base64 | tr -d '\n')" >> variables.env
-    - cat variables.env
-
   artifacts:
-    paths:
-      - $CI_PROJECT_DIR/terraform.tfstate
     reports:
       dotenv: variables.env
 
-  cache:
-    key: "terraform-cache-2025-33dd"
-    paths:
-      - $CI_PROJECT_DIR/terraform.tfstate
+extract_outputs_prod:
+  stage: output
+  image: ubuntu:latest
+  dependencies:
+    - terraform
+  script:
+    - apt-get update && apt-get install -y curl unzip
+    - curl -o /tmp/terraform.zip -LO https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
+    - unzip /tmp/terraform.zip -d /usr/local/bin/
+    - mkdir -p ~/.aws
+    - echo "[default]" > ~/.aws/credentials
+    - echo "aws_access_key_id=$MY_AWS_ACCESS_KEY_ID" >> ~/.aws/credentials
+    - echo "aws_secret_access_key=$MY_AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+    - echo "aws_session_token=$MY_AWS_SESSION_TOKEN" >> ~/.aws/credentials
+    - terraform init
+    - echo "DB_URL_PROD=$(terraform output -raw db_url_prod)" >> variables_prod.env
+    - echo "DB_USERNAME_PROD=$(terraform output -raw db_username_prod)" >> variables_prod.env
+    - echo "DB_PASSWORD_PROD=$(terraform output -raw db_password_prod)" >> variables_prod.env
+    - echo "EC2_PUBLIC_IP_PROD=$(terraform output -raw ec2_public_ip_prod)" >> variables_prod.env
+    - echo "PRIVATE_KEY_PROD=$(terraform output -raw private_key_prod | base64 | tr -d '\n')" >> variables_prod.env
+  artifacts:
+    reports:
+      dotenv: variables_prod.env
 
 build_image:
   image: docker:24.0.5
