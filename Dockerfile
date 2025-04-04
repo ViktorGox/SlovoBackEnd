@@ -10,8 +10,8 @@ RUN ./gradlew bootJar --no-daemon
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-COPY uploads/gp_default.png ./uploads
-COPY uploads/pf_default.png ./uploads
+COPY uploads/gp_default.png ./uploads/gp_default.png
+COPY uploads/pf_default.png ./uploads/pf_default.png
 COPY --from=builder /app/build/libs/slovoBackend.jar slovoBackend.jar
 
 EXPOSE 8080
