@@ -91,10 +91,8 @@ extract_outputs_prod:
     paths:
       - terraform.tfstate
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_NAME == "main"'
       when: always
-      variables:
-        rule: '$CI_COMMIT_REF_NAME == "main"'
 
 build_image:
   image: docker:24.0.5
@@ -210,7 +208,5 @@ deploy_to_ec2_prod:
     reports:
       dotenv: variables_prod.env
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_NAME == "main"'
       when: always
-      variables:
-        rule: '$CI_COMMIT_REF_NAME == "main"'
