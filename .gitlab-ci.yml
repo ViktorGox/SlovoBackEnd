@@ -30,6 +30,11 @@ terraform:
     key: "terraform-cache-2025-33dd"
     paths:
       - $CI_PROJECT_DIR/terraform.tfstate
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+      variables:
+        rule: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
 
 extract_outputs_dev:
   stage: output
@@ -54,12 +59,15 @@ extract_outputs_dev:
   artifacts:
     reports:
       dotenv: variables.env
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+      variables:
+        rule: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
 
 extract_outputs_prod:
   stage: output
   image: ubuntu:latest
-  dependencies:
-    - terraform
   script:
     - apt-get update && apt-get install -y curl unzip
     - curl -o /tmp/terraform.zip -LO https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
@@ -78,6 +86,15 @@ extract_outputs_prod:
   artifacts:
     reports:
       dotenv: variables_prod.env
+  cache:
+    key: "terraform-cache-2025-33dd"
+    paths:
+      - terraform.tfstate
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: always
+      variables:
+        rule: '$CI_COMMIT_REF_NAME == "main"'
 
 build_image:
   image: docker:24.0.5
@@ -97,6 +114,11 @@ build_image:
 
     - docker tag $IMAGE_NAME $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+      variables:
+        rule: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
 
 deploy_to_ec2:
   stage: deploy
@@ -141,8 +163,11 @@ deploy_to_ec2:
   artifacts:
     reports:
       dotenv: variables.env
-  only:
-    - B-20-dockerize-and-deploy
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+      variables:
+        rule: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
 
 deploy_to_ec2_prod:
   stage: deploy_prod
@@ -186,5 +211,8 @@ deploy_to_ec2_prod:
   artifacts:
     reports:
       dotenv: variables_prod.env
-  only:
-    - B-20-dockerize-and-deploy
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: always
+      variables:
+        rule: '$CI_COMMIT_REF_NAME == "main"'
