@@ -1,4 +1,4 @@
-package aad.message.app.group_user_role;
+package aad.message.app.group.user.role;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

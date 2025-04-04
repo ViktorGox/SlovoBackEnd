@@ -1,7 +1,7 @@
 package aad.message.app.middleware;
 
-import aad.message.app.group_user_role.GroupUserRole;
-import aad.message.app.group_user_role.GroupUserRoleRepository;
+import aad.message.app.group.user.role.GroupUserRole;
+import aad.message.app.group.user.role.GroupUserRoleRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;

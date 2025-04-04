@@ -2,11 +2,11 @@ package aad.message.app.group;
 
 import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
-import aad.message.app.group_user_role.GroupUserRoleRepository;
+import aad.message.app.group.user.role.GroupUserRoleRepository;
 import aad.message.app.message.Message;
 import aad.message.app.message.MessageService;
 import aad.message.app.returns.Responses;
-import aad.message.app.group_user_role.GroupUserRole;
+import aad.message.app.group.user.role.GroupUserRole;
 import aad.message.app.role.Role;
 import aad.message.app.role.RoleService;
 import aad.message.app.user.UserRoleMessageDTO;

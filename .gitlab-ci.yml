@@ -1,0 +1,206 @@
+stages:
+  - terraform
+  - output
+  - build
+  - deploy
+  - deploy_prod
+
+terraform:
+  stage: terraform
+  image: ubuntu:latest
+  script:
+    - apt-get update && apt-get install -y curl jq unzip
+    - curl -o /tmp/terraform.zip -LO https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
+    - unzip /tmp/terraform.zip -d /usr/local/bin/
+    - terraform --version
+
+    - mkdir -p ~/.aws
+    - echo "[default]" > ~/.aws/credentials
+    - echo "aws_access_key_id=$MY_AWS_ACCESS_KEY_ID" >> ~/.aws/credentials
+    - echo "aws_secret_access_key=$MY_AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+    - echo "aws_session_token=$MY_AWS_SESSION_TOKEN" >> ~/.aws/credentials
+
+    - terraform init
+    - terraform plan -out=plan.tfplan
+    - terraform apply -auto-approve plan.tfplan
+  artifacts:
+    paths:
+      - terraform.tfstate
+  cache:
+    key: "terraform-cache-2025-33dd"
+    paths:
+      - $CI_PROJECT_DIR/terraform.tfstate
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+      when: always
+
+extract_outputs_dev:
+  stage: output
+  image: ubuntu:latest
+  dependencies:
+    - terraform
+  script:
+    - apt-get update && apt-get install -y curl unzip
+    - curl -o /tmp/terraform.zip -LO https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
+    - unzip /tmp/terraform.zip -d /usr/local/bin/
+    - mkdir -p ~/.aws
+    - echo "[default]" > ~/.aws/credentials
+    - echo "aws_access_key_id=$MY_AWS_ACCESS_KEY_ID" >> ~/.aws/credentials
+    - echo "aws_secret_access_key=$MY_AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+    - echo "aws_session_token=$MY_AWS_SESSION_TOKEN" >> ~/.aws/credentials
+    - terraform init
+    - echo "DB_URL=$(terraform output -raw db_url)" >> variables.env
+    - echo "DB_USERNAME=$(terraform output -raw db_username)" >> variables.env
+    - echo "DB_PASSWORD=$(terraform output -raw db_password)" >> variables.env
+    - echo "EC2_PUBLIC_IP=$(terraform output -raw ec2_public_ip)" >> variables.env
+    - echo "PRIVATE_KEY=$(terraform output -raw private_key | base64 | tr -d '\n')" >> variables.env
+  artifacts:
+    reports:
+      dotenv: variables.env
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+      when: always
+
+extract_outputs_prod:
+  stage: output
+  image: ubuntu:latest
+  script:
+    - apt-get update && apt-get install -y curl unzip
+    - curl -o /tmp/terraform.zip -LO https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
+    - unzip /tmp/terraform.zip -d /usr/local/bin/
+    - mkdir -p ~/.aws
+    - echo "[default]" > ~/.aws/credentials
+    - echo "aws_access_key_id=$MY_AWS_ACCESS_KEY_ID" >> ~/.aws/credentials
+    - echo "aws_secret_access_key=$MY_AWS_SECRET_ACCESS_KEY" >> ~/.aws/credentials
+    - echo "aws_session_token=$MY_AWS_SESSION_TOKEN" >> ~/.aws/credentials
+    - terraform init
+    - echo "DB_URL_PROD=$(terraform output -raw db_url_prod)" >> variables_prod.env
+    - echo "DB_USERNAME_PROD=$(terraform output -raw db_username_prod)" >> variables_prod.env
+    - echo "DB_PASSWORD_PROD=$(terraform output -raw db_password_prod)" >> variables_prod.env
+    - echo "EC2_PUBLIC_IP_PROD=$(terraform output -raw ec2_public_ip_prod)" >> variables_prod.env
+    - echo "PRIVATE_KEY_PROD=$(terraform output -raw private_key_prod | base64 | tr -d '\n')" >> variables_prod.env
+  artifacts:
+    reports:
+      dotenv: variables_prod.env
+  cache:
+    key: "terraform-cache-2025-33dd"
+    paths:
+      - terraform.tfstate
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_NAME == "main"'
+      when: always
+
+build_image:
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  stage: build
+  script:
+    - echo "Logging into GitLab Container Registry..."
+    - echo "$CI_JOB_TOKEN" | docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY
+
+    - echo "Building Docker image with docker-compose..."
+    - docker-compose build
+
+    - IMAGE_NAME=$(docker images --format "{{.Repository}}:{{.Tag}}" | head -n 1)
+
+    - docker tag $IMAGE_NAME $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:latest
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+      when: always
+
+deploy_to_ec2:
+  stage: deploy
+  image: python:3.9
+  script:
+    - echo "Setting up SSH keys for EC2 connection..."
+    - mkdir -p ~/.ssh
+    - echo "$PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo "StrictHostKeyChecking=no" >> ~/.ssh/config
+
+    - echo "Connecting to EC2 and deploying the Docker container..."
+    - ssh -o StrictHostKeyChecking=no ubuntu@$EC2_PUBLIC_IP "
+      exec > /home/ubuntu/deploy.log 2>&1 &&
+      sudo apt-get update &&
+      sudo apt-get install -y nginx certbot python3-certbot-nginx docker.io &&
+      echo "$EC2_TOKEN" | sudo docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY &&
+      sudo docker pull $CI_REGISTRY_IMAGE:latest &&
+      sudo docker rm -f backend 2>/dev/null || true &&
+      sudo docker run -d --name backend -p 8080:8080
+      -e DB_URL=$DB_URL
+      -e DB_USERNAME=$DB_USERNAME
+      -e DB_PASSWORD=$DB_PASSWORD
+      -e JWT_SECRET=$JWT_SECRET
+      -e DEEPGRAM_TOKEN=$DEEPGRAM_TOKEN
+      $CI_REGISTRY_IMAGE
+      "
+
+    - sed "s/__DOMAIN_NAME__/$DOMAIN_NAME_DEV/g" nginx/default.conf.template > nginx/default.conf
+    - scp nginx/default.conf ubuntu@$EC2_PUBLIC_IP:/home/ubuntu/default.conf
+
+    - ssh ubuntu@$EC2_PUBLIC_IP "
+      exec > /home/ubuntu/cert.log 2>&1 &&
+      sudo mv /home/ubuntu/default.conf /etc/nginx/sites-available/default &&
+      sudo systemctl reload nginx &&
+      sudo certbot --nginx -d $DOMAIN_NAME_DEV --non-interactive --agree-tos --email $EMAIL &&
+      sudo systemctl reload nginx
+      "
+  dependencies:
+    - terraform
+    - build_image
+    - extract_outputs_dev
+  artifacts:
+    reports:
+      dotenv: variables.env
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+      when: always
+
+deploy_to_ec2_prod:
+  stage: deploy_prod
+  image: python:3.9
+  script:
+    - echo "Setting up SSH keys for EC2 connection..."
+    - mkdir -p ~/.ssh
+    - echo "$PRIVATE_KEY_PROD" | base64 -d > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo "StrictHostKeyChecking=no" >> ~/.ssh/config
+
+    - echo "Connecting to EC2 and deploying the Docker container..."
+    - ssh -o StrictHostKeyChecking=no ubuntu@$EC2_PUBLIC_IP_PROD "
+      exec > /home/ubuntu/deploy.log 2>&1 &&
+      sudo apt-get update &&
+      sudo apt-get install -y nginx certbot python3-certbot-nginx docker.io &&
+      echo "$EC2_TOKEN" | sudo docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY &&
+      sudo docker pull $CI_REGISTRY_IMAGE:latest &&
+      sudo docker rm -f backend 2>/dev/null || true &&
+      sudo docker run -d --name backend -p 8080:8080
+      -e DB_URL=$DB_URL_PROD
+      -e DB_USERNAME=$DB_USERNAME_PROD
+      -e DB_PASSWORD=$DB_PASSWORD_PROD
+      -e JWT_SECRET=$JWT_SECRET_PROD
+      -e DEEPGRAM_TOKEN=$DEEPGRAM_TOKEN
+      $CI_REGISTRY_IMAGE"
+
+    - sed "s/__DOMAIN_NAME__/$DOMAIN_NAME_PROD/g" nginx/default.conf.template > nginx/default.conf
+    - scp nginx/default.conf ubuntu@$EC2_PUBLIC_IP_PROD:/home/ubuntu/default.conf
+
+    - ssh ubuntu@$EC2_PUBLIC_IP_PROD "
+      exec > /home/ubuntu/cert.log 2>&1 &&
+      sudo mv /home/ubuntu/default.conf /etc/nginx/sites-available/default &&
+      sudo systemctl reload nginx &&
+      sudo certbot --nginx -d $DOMAIN_NAME_PROD --non-interactive --agree-tos --email $EMAIL &&
+      sudo systemctl reload nginx
+      "
+  dependencies:
+    - terraform
+    - build_image
+    - extract_outputs_prod
+  artifacts:
+    reports:
+      dotenv: variables_prod.env
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_NAME == "main"'
+      when: always
