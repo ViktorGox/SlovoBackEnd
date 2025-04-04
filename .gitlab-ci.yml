@@ -122,9 +122,8 @@ deploy_to_ec2:
       -e DB_PASSWORD=$DB_PASSWORD
       -e JWT_SECRET=$JWT_SECRET
       $CI_REGISTRY_IMAGE &&
-
       echo 'Setting up Nginx configuration...' &&
-      sudo echo '
+      sudo tee /etc/nginx/sites-available/default > /dev/null <<EOF
       server {
       listen 80;
       server_name $DOMAIN_NAME;
@@ -139,7 +138,7 @@ deploy_to_ec2:
       proxy_set_header Connection "upgrade";
         }
       }
-      ' | sudo tee /etc/nginx/sites-available/default &&
+      EOF &&
       
       sudo systemctl reload nginx &&
       
