@@ -73,19 +73,15 @@ deploy_to_ec2:
 
     - echo "Connecting to EC2 and deploying the Docker container..."
     - ssh -o StrictHostKeyChecking=no ubuntu@$EC2_PUBLIC_IP "
-      exec > /home/ubuntu/deploy.log 2>&1
-      sudo apt-get update && sudo apt-get install -y docker.io
-      
-      echo "$CI_JOB_TOKEN" | docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY
-      
-      docker pull $CI_REGISTRY_IMAGE:latest
-      
+      exec > /home/ubuntu/deploy.log 2>&1 &&
+      sudo apt-get update && sudo apt-get install -y docker.io &&
+      echo "$CI_JOB_TOKEN" | docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY &&
+      docker pull $CI_REGISTRY_IMAGE:latest &&
       docker run -d -p 8080:8080 \
       -e DB_URL=$DB_URL \
       -e DB_USERNAME=$DB_USERNAME \
       -e DB_PASSWORD=$DB_PASSWORD \
-      $CI_REGISTRY_IMAGE:latest
-      
+      $CI_REGISTRY_IMAGE:latest && 
       tail -f /home/ubuntu/deploy.log"
   dependencies:
     - terraform
