@@ -133,7 +133,7 @@ deploy_to_ec2:
       -e DB_USERNAME=$DB_USERNAME
       -e DB_PASSWORD=$DB_PASSWORD
       -e JWT_SECRET=$JWT_SECRET
-      -е DEEPGRAM_TOKEN=$DEEPGRAM_TOKEN
+      -e DEEPGRAM_TOKEN=$DEEPGRAM_TOKEN
       $CI_REGISTRY_IMAGE
       "
 
@@ -181,7 +181,7 @@ deploy_to_ec2_prod:
       -e DB_USERNAME=$DB_USERNAME_PROD
       -e DB_PASSWORD=$DB_PASSWORD_PROD
       -e JWT_SECRET=$JWT_SECRET_PROD
-      -е DEEPGRAM_TOKEN=$DEEPGRAM_TOKEN
+      -e DEEPGRAM_TOKEN=$DEEPGRAM_TOKEN
       $CI_REGISTRY_IMAGE"
 
     - sed "s/__DOMAIN_NAME__/$DOMAIN_NAME_PROD/g" nginx/default.conf.template > nginx/default.conf
