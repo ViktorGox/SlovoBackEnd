@@ -101,8 +101,6 @@ build_image:
   services:
     - docker:24.0.5-dind
   stage: build
-  only:
-    - B-20-dockerize-and-deploy
   script:
     - echo "Logging into GitLab Container Registry..."
     - echo "$CI_JOB_TOKEN" | docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY
