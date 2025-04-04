@@ -157,7 +157,8 @@ deploy_to_ec2_prod:
     - echo "Connecting to EC2 and deploying the Docker container..."
     - ssh -o StrictHostKeyChecking=no ubuntu@$EC2_PUBLIC_IP_PROD "
       exec > /home/ubuntu/deploy.log 2>&1 &&
-      sudo apt-get update && sudo apt-get install -y docker.io &&
+      sudo apt-get update &&
+      sudo apt-get install -y nginx certbot python3-certbot-nginx docker.io &&
       echo "$EC2_TOKEN" | sudo docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY &&
       sudo docker pull $CI_REGISTRY_IMAGE:latest &&
       sudo docker rm -f backend 2>/dev/null || true &&
