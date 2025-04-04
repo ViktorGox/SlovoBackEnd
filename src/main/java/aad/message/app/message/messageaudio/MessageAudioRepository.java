@@ -14,7 +14,8 @@ public interface MessageAudioRepository extends JpaRepository<MessageAudio, Long
             "JOIN MessageAudioGroup mag ON ma.id = mag.messageAudio.id " +
             "JOIN mag.group g " +
             "WHERE g.id = :groupId AND mag.messageAudio.user.id = :userId " +
-            "ORDER BY ma.sentDate DESC")
+            "ORDER BY ma.sentDate " +
+            "LIMIT 1")
     Optional<MessageAudio> findTopByUserIdAndGroupIdOrderBySentDateDesc(@Param("userId") Long userId,
                                                                         @Param("groupId") Long groupId);
 }

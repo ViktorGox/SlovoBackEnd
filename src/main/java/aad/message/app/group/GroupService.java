@@ -113,6 +113,7 @@ public class GroupService {
 
         for (Group group : groups) {
             RecentChatDTO recentChat = new RecentChatDTO();
+            recentChat.groupId = group.id;
             recentChat.groupTitle = group.name;
             recentChat.groupImage = group.imageUrl;
 
@@ -131,7 +132,7 @@ public class GroupService {
                 if(message instanceof MessageText){
                     recentMessageDTO.messageText = ((MessageText) message).text;
                 } else {
-                    recentMessageDTO.messageText = null;
+                    recentMessageDTO.messageText = "Audio";
                 }
                 recentChat.lastMessage = recentMessageDTO;
             } else {

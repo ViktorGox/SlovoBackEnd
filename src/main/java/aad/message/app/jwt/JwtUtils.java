@@ -60,9 +60,6 @@ public class JwtUtils {
         return refreshToken;
     }
 
-    // TODO: Throws an error when invalid, which is caught and returns 401, but is printed to the console.
-    //  Gives expiredJwtException
-    //  Gives SignatureException if signature doesn't match.
     public Long validateTokenAndGetId(String token, String expectedType) {
         try {
             Claims claims = Jwts.parserBuilder()

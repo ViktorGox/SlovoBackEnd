@@ -14,6 +14,7 @@ import aad.message.app.middleware.GroupAccessInterceptor;
 import aad.message.app.returns.Responses;
 import aad.message.app.user.User;
 import aad.message.app.user.UserRepository;
+import aad.message.app.websocket.SlovoWebSocketHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -42,6 +43,7 @@ public class MessageAudioController {
     private final GroupRepository groupRepository;
     private final TranscriptionService transcriptionService;
     private final GroupUserRoleRepository groupUserRoleRepository;
+    private final SlovoWebSocketHandler webSocketHandler;
 
     public MessageAudioController(UserRepository userRepository,
                                   FileUploadHandler fileUploadHandler,
@@ -49,7 +51,9 @@ public class MessageAudioController {
                                   MessageRepository messageRepository,
                                   MessageAudioGroupRepository messageAudioGroupRepository,
                                   GroupRepository groupRepository,
-                                  TranscriptionService transcriptionService, GroupUserRoleRepository groupUserRoleRepository) {
+                                  TranscriptionService transcriptionService,
+                                  GroupUserRoleRepository groupUserRoleRepository,
+                                  SlovoWebSocketHandler webSocketHandler) {
         this.messageAudioRepository = messageAudioRepository;
         this.fileUploadHandler = fileUploadHandler;
         this.userRepository = userRepository;
@@ -58,14 +62,15 @@ public class MessageAudioController {
         this.groupRepository = groupRepository;
         this.transcriptionService = transcriptionService;
         this.groupUserRoleRepository = groupUserRoleRepository;
+        this.webSocketHandler = webSocketHandler;
     }
 
     @PostMapping
     public ResponseEntity<?> postMessage(@RequestPart(value = "file", required = false) MultipartFile file,
                                          @RequestPart(value = "dto", required = false) MessageAudioPostDTO dto)
             throws IOException {
-        if(dto == null) return Responses.incompleteBody(List.of("MessageAudioPostDTO"));
-        if(file == null || file.isEmpty()) return Responses.incompleteBody(List.of("File"));
+        if (dto == null) return Responses.incompleteBody(List.of("MessageAudioPostDTO"));
+        if (file == null || file.isEmpty()) return Responses.incompleteBody(List.of("File"));
 
         Collection<String> missingFields = MessageAudioPostDTO.verify(dto);
         if (!missingFields.isEmpty()) return Responses.incompleteBody(missingFields);
@@ -83,7 +88,7 @@ public class MessageAudioController {
         message.sentDate = LocalDateTime.now(ZoneOffset.UTC);
 
         if (dto.replyMessageId != null) {
-            Optional<Message> reply = messageRepository.findMessageById(dto.replyMessageId);
+            Optional<Message> reply = messageRepository.findById(dto.replyMessageId);
             if (reply.isPresent()) {
                 message.replyMessage = reply.get();
             }
@@ -107,6 +112,8 @@ public class MessageAudioController {
         saveMessageAudioGroups(message, dto.groupIds);
 
         transcriptionService.transcribeAudio(message);
+
+        webSocketHandler.sendMessageToGroups(dto.groupIds, message.id);
 
         return ResponseEntity.ok(new MessageAudioDTO(message));
     }

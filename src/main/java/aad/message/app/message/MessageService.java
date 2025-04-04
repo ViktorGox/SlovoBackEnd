@@ -48,11 +48,9 @@ public class MessageService {
             return groupTextMessage.get().sentDate.isAfter(groupAudioMessage.get().messageAudio.sentDate) ?
                     Optional.of(groupTextMessage.get()) : Optional.of(groupAudioMessage.get().messageAudio);
         } else if (groupTextMessage.isPresent()) {
-            return groupTextMessage.map(messageText ->  messageText);
+            return groupTextMessage.map(messageText -> messageText);
         } else {
             return groupAudioMessage.map(messageAudioGroup -> messageAudioGroup.messageAudio);
         }
     }
 }
-
-
