@@ -172,12 +172,10 @@ resource "aws_instance" "my_instance" {
 
 output "db_url" {
   value = "jdbc:postgresql://${aws_db_instance.my_rds_instance.endpoint}/${aws_db_instance.my_rds_instance.db_name}"
-  sensitive = true
 }
 
 output "db_username" {
   value = aws_db_instance.my_rds_instance.username
-  sensitive = true
 }
 
 output "db_password" {
@@ -191,4 +189,5 @@ output "ec2_public_ip" {
 
 output "private_key" {
   value = tls_private_key.my_key.private_key_pem
+  sensitive = true
 }
