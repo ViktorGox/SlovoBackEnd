@@ -111,16 +111,43 @@ deploy_to_ec2:
     - echo "Connecting to EC2 and deploying the Docker container..."
     - ssh -o StrictHostKeyChecking=no ubuntu@$EC2_PUBLIC_IP "
       exec > /home/ubuntu/deploy.log 2>&1 &&
-      sudo apt-get update && sudo apt-get install -y docker.io &&
+      sudo apt-get update &&
+      sudo apt-get install -y nginx certbot python3-certbot-nginx docker.io &&
       echo "$EC2_TOKEN" | sudo docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY &&
       sudo docker pull $CI_REGISTRY_IMAGE:latest &&
       sudo docker rm -f backend 2>/dev/null || true &&
-      sudo docker run -d --name backend -p 8080:8080 
-      -e DB_URL=$DB_URL 
-      -e DB_USERNAME=$DB_USERNAME 
-      -e DB_PASSWORD=$DB_PASSWORD 
-      -e JWT_SECRET=$JWT_SECRET 
-      $CI_REGISTRY_IMAGE"
+      sudo docker run -d --name backend -p 8080:8080
+      -e DB_URL=$DB_URL
+      -e DB_USERNAME=$DB_USERNAME
+      -e DB_PASSWORD=$DB_PASSWORD
+      -e JWT_SECRET=$JWT_SECRET
+      $CI_REGISTRY_IMAGE &&
+      
+      # Set up the Nginx configuration
+      echo 'Setting up Nginx configuration...' &&
+      sudo echo '
+      server {
+      listen 80;
+      server_name $DOMAIN_NAME;
+      
+      location / {
+      proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+      proxy_set_header Host \$host;
+      proxy_pass http://localhost:8080/;
+      proxy_buffering off;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade \$http_upgrade;
+      proxy_set_header Connection "upgrade";
+        }
+      }
+      ' | sudo tee /etc/nginx/sites-available/default &&
+      
+      sudo systemctl reload nginx &&
+      
+      sudo certbot --nginx -d $DOMAIN_NAME_DEV --non-interactive --agree-tos --email $EMAIL &&
+      
+      sudo systemctl reload nginx
+      "
   dependencies:
     - terraform
     - build_image
