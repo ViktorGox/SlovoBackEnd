@@ -124,6 +124,7 @@ deploy_to_ec2:
   dependencies:
     - terraform
     - build_image
+    - extract_outputs_dev
   artifacts:
     reports:
       dotenv: variables.env
@@ -156,8 +157,9 @@ deploy_to_ec2_prod:
   dependencies:
     - terraform
     - build_image
+    - extract_outputs_prod
   artifacts:
     reports:
-      dotenv: variables.env
+      dotenv: variables_prod.env
   only:
     - B-20-dockerize-and-deploy
