@@ -31,10 +31,8 @@ terraform:
     paths:
       - $CI_PROJECT_DIR/terraform.tfstate
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
       when: always
-      variables:
-        rule: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
 
 extract_outputs_dev:
   stage: output
@@ -60,10 +58,8 @@ extract_outputs_dev:
     reports:
       dotenv: variables.env
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
       when: always
-      variables:
-        rule: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
 
 extract_outputs_prod:
   stage: output
@@ -111,10 +107,8 @@ build_image:
     - docker tag $IMAGE_NAME $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
       when: always
-      variables:
-        rule: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
 
 deploy_to_ec2:
   stage: deploy
@@ -160,10 +154,8 @@ deploy_to_ec2:
     reports:
       dotenv: variables.env
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
       when: always
-      variables:
-        rule: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
 
 deploy_to_ec2_prod:
   stage: deploy_prod
