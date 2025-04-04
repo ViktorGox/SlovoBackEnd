@@ -81,8 +81,7 @@ deploy_to_ec2:
       -e DB_URL=$DB_URL
       -e DB_USERNAME=$DB_USERNAME
       -e DB_PASSWORD=$DB_PASSWORD
-      $CI_REGISTRY_IMAGE:latest && 
-      tail -f /home/ubuntu/deploy.log"
+      $CI_REGISTRY_IMAGE:latest &&"
   dependencies:
     - terraform
     - build_image
