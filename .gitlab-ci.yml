@@ -145,7 +145,7 @@ deploy_to_ec2:
       "
   dependencies:
     - terraform
-    - build_image
+#    - build_image
     - extract_outputs_dev
   artifacts:
     reports:
@@ -178,7 +178,7 @@ deploy_to_ec2_prod:
       $CI_REGISTRY_IMAGE"
   dependencies:
     - terraform
-    - build_image
+#    - build_image
     - extract_outputs_prod
   artifacts:
     reports:
