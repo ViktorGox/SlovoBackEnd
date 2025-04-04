@@ -132,6 +132,33 @@ resource "aws_db_instance" "my_rds_instance" {
   skip_final_snapshot = true
 }
 
+resource "aws_db_instance" "my_rds_instance_prod" {
+  identifier        = "slovo-db-prod"
+  engine            = "postgres"
+  engine_version    = "12.16"
+  instance_class    = "db.t3.micro"
+  allocated_storage = 20
+  db_name           = "slovoDB"
+  username          = "slovo"
+  password          = "slovo-complicated-password-prod"
+  port              = 5432
+  db_subnet_group_name = aws_db_subnet_group.my_db_subnet_group.name
+  vpc_security_group_ids = [aws_security_group.my_rds_security_group.id]
+
+  multi_az          = false
+  publicly_accessible = false
+
+  tags = {
+    Name = "SlovoDB"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  skip_final_snapshot = true
+}
+
 resource "tls_private_key" "my_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
@@ -140,6 +167,16 @@ resource "tls_private_key" "my_key" {
 resource "aws_key_pair" "my_key_pair" {
   key_name   = "my-key-pair"
   public_key = tls_private_key.my_key.public_key_openssh
+}
+
+resource "tls_private_key" "my_key_prod" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "aws_key_pair" "my_key_pair_prod" {
+  key_name   = "my-key-pair"
+  public_key = tls_private_key.my_key_prod.public_key_openssh
 }
 
 data "template_file" "sql_script" {
@@ -155,6 +192,18 @@ data "template_file" "start_script" {
     DB_ENDPOINT        = aws_db_instance.my_rds_instance.address
     DB_USERNAME        = aws_db_instance.my_rds_instance.username
     DB_NAME            = aws_db_instance.my_rds_instance.db_name
+  }
+}
+
+data "template_file" "start_script_prod" {
+  template = file("start.sh")
+
+  vars = {
+    SQL_SCRIPT_CONTENT = data.template_file.sql_script.rendered
+    DB_PASSWORD        = aws_db_instance.my_rds_instance_prod.password
+    DB_ENDPOINT        = aws_db_instance.my_rds_instance_prod.address
+    DB_USERNAME        = aws_db_instance.my_rds_instance_prod.username
+    DB_NAME            = aws_db_instance.my_rds_instance_prod.db_name
   }
 }
 
@@ -176,13 +225,39 @@ resource "aws_instance" "my_instance" {
   }
 }
 
+resource "aws_instance" "my_instance_prod" {
+  ami           = "ami-08116b9957a259459"
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.my_subnet_az1.id
+  key_name      = aws_key_pair.my_key_pair_prod.key_name
+  vpc_security_group_ids = [aws_security_group.my_security_group.id]
+
+  user_data = data.template_file.start_script_prod.rendered
+
+  tags = {
+    Name = "Instance_prod"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 
 output "db_url" {
   value = "jdbc:postgresql://${aws_db_instance.my_rds_instance.endpoint}/${aws_db_instance.my_rds_instance.db_name}"
 }
 
+output "db_url_prod" {
+  value = "jdbc:postgresql://${aws_db_instance.my_rds_instance_prod.endpoint}/${aws_db_instance.my_rds_instance_prod.db_name}"
+}
+
 output "db_username" {
   value = aws_db_instance.my_rds_instance.username
+}
+
+output "db_username_prod" {
+  value = aws_db_instance.my_rds_instance_prod.username
 }
 
 output "db_password" {
@@ -190,11 +265,25 @@ output "db_password" {
   sensitive = true
 }
 
-output "ec2_public_ip" {
+output "db_password_prod" {
+  value = aws_db_instance.my_rds_instance_prod.password
+  sensitive = true
+}
+
+output "ec2_public_ip_dev" {
   value = aws_instance.my_instance.public_ip
+}
+
+output "ec2_public_ip_prod" {
+  value = aws_instance.my_instance_prod.public_ip
 }
 
 output "private_key" {
   value = tls_private_key.my_key.private_key_pem
+  sensitive = true
+}
+
+output "private_key_prod" {
+  value = tls_private_key.my_key_prod.private_key_pem
   sensitive = true
 }

@@ -2,6 +2,7 @@ stages:
   - terraform
   - build
   - deploy
+  - deploy_prod
 
 terraform:
   stage: terraform
@@ -29,6 +30,11 @@ terraform:
     - echo "DB_PASSWORD=$(terraform output -raw db_password)" >> variables.env
     - echo "EC2_PUBLIC_IP=$(terraform output -raw ec2_public_ip)" >> variables.env
     - echo "PRIVATE_KEY=$(terraform output -raw private_key | base64 | tr -d '\n')" >> variables.env
+    - echo "DB_URL_PROD=$(terraform output -raw db_url_prod)" >> variables.env
+    - echo "DB_USERNAME_PROD=$(terraform output -raw db_username_prod)" >> variables.env
+    - echo "DB_PASSWORD_PROD=$(terraform output -raw db_password_prod)" >> variables.env
+    - echo "EC2_PUBLIC_IP_PROD=$(terraform output -raw ec2_public_ip_prod)" >> variables.env
+    - echo "PRIVATE_KEY_PROD=$(terraform output -raw private_key_prod | base64 | tr -d '\n')" >> variables.env
     - cat variables.env
 
   artifacts:
@@ -83,6 +89,38 @@ deploy_to_ec2:
       -e DB_USERNAME=$DB_USERNAME 
       -e DB_PASSWORD=$DB_PASSWORD 
       -e JWT_SECRET=$JWT_SECRET 
+      $CI_REGISTRY_IMAGE"
+  dependencies:
+    - terraform
+    - build_image
+  artifacts:
+    reports:
+      dotenv: variables.env
+  only:
+    - B-20-dockerize-and-deploy
+
+deploy_to_ec2_prod:
+  stage: deploy_prod
+  image: python:3.9
+  script:
+    - echo "Setting up SSH keys for EC2 connection..."
+    - mkdir -p ~/.ssh
+    - echo "$PRIVATE_KEY_PROD" | base64 -d > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo "StrictHostKeyChecking=no" >> ~/.ssh/config
+
+    - echo "Connecting to EC2 and deploying the Docker container..."
+    - ssh -o StrictHostKeyChecking=no ubuntu@$EC2_PUBLIC_IP_PROD "
+      exec > /home/ubuntu/deploy.log 2>&1 &&
+      sudo apt-get update && sudo apt-get install -y docker.io &&
+      echo "$EC2_TOKEN" | sudo docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY &&
+      sudo docker pull $CI_REGISTRY_IMAGE:latest &&
+      sudo docker rm -f backend 2>/dev/null || true &&
+      sudo docker run -d --name backend -p 8080:8080
+      -e DB_URL=$DB_URL_PROD
+      -e DB_USERNAME=$DB_USERNAME_PROD
+      -e DB_PASSWORD=$DB_PASSWORD_PROD
+      -e JWT_SECRET=$JWT_SECRET_PROD
       $CI_REGISTRY_IMAGE"
   dependencies:
     - terraform
