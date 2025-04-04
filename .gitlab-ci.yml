@@ -61,17 +61,38 @@ build_image:
     - docker tag $IMAGE_NAME $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
 
-output_variables:
-  stage: output
+deploy_to_ec2:
+  stage: deploy
+  image: python:3.9
   script:
-    - echo "Printing saved Terraform variables..."
-    - echo "DB_URL=$DB_URL"
-    - echo "DB_USERNAME=$DB_USERNAME"
-    - echo "DB_PASSWORD=$DB_PASSWORD"
-    - echo "EC2_PUBLIC_IP=$EC2_PUBLIC_IP"
-    - echo "PRIVATE_KEY=$PRIVATE_KEY"
+    - echo "Setting up SSH keys for EC2 connection..."
+    - mkdir -p ~/.ssh
+    - echo "$PRIVATE_KEY" | base64 -d > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo "StrictHostKeyChecking=no" >> ~/.ssh/config
+
+    - echo "Connecting to EC2 and deploying the Docker container..."
+    - ssh -o StrictHostKeyChecking=no ubuntu@$EC2_PUBLIC_IP << 'EOF'
+      exec > /home/ubuntu/deploy.log 2>&1
+      sudo apt-get update && sudo apt-get install -y docker.io
+      
+      echo "$CI_JOB_TOKEN" | docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY
+      
+      docker pull $CI_REGISTRY_IMAGE:latest
+      
+      docker run -d -p 8080:8080 \
+      -e DB_URL=$DB_URL \
+      -e DB_USERNAME=$DB_USERNAME \
+      -e DB_PASSWORD=$DB_PASSWORD \
+      $CI_REGISTRY_IMAGE:latest
+      
+      tail -f /home/ubuntu/deploy.log
+      EOF
   dependencies:
     - terraform
+    - build_image
   artifacts:
-    paths:
-      - variables.env
+    reports:
+      dotenv: variables.env
+  only:
+    - B-20-dockerize-and-deploy
