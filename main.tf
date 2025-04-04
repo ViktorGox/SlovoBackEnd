@@ -207,6 +207,14 @@ data "template_file" "start_script_prod" {
   }
 }
 
+resource "aws_eip" "my_eip" {
+  instance = aws_instance.my_instance.id
+}
+
+resource "aws_eip" "my_eip_prod" {
+  instance = aws_instance.my_instance_prod.id
+}
+
 resource "aws_instance" "my_instance" {
   ami           = "ami-08116b9957a259459"
   instance_type = "t2.micro"
