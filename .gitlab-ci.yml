@@ -76,7 +76,7 @@ deploy_to_ec2:
       exec > /home/ubuntu/deploy.log 2>&1 &&
       sudo apt-get update && sudo apt-get install -y docker.io &&
       echo "$CI_JOB_TOKEN" | docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY &&
-      sudo docker pull $CI_REGISTRY_IMAGE:latest &&
+      sudo docker pull registry.gitlab.com/saxionnl/hbo-ict/aad/backend/140:latest &&
       sudo docker run -d -p 8080:8080 \
       -e DB_URL=$DB_URL \
       -e DB_USERNAME=$DB_USERNAME \
