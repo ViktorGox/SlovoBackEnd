@@ -77,10 +77,10 @@ deploy_to_ec2:
       sudo apt-get update && sudo apt-get install -y docker.io &&
       echo "$EC2_TOKEN" | sudo docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY &&
       sudo docker pull $CI_REGISTRY_IMAGE:latest &&
-      sudo docker run -d -p 8080:8080 \
-      -e DB_URL=$DB_URL \
-      -e DB_USERNAME=$DB_USERNAME \
-      -e DB_PASSWORD=$DB_PASSWORD \
+      sudo docker run -d --name backend -p 8080:8080
+      -e DB_URL=$DB_URL
+      -e DB_USERNAME=$DB_USERNAME
+      -e DB_PASSWORD=$DB_PASSWORD
       $CI_REGISTRY_IMAGE:latest && 
       tail -f /home/ubuntu/deploy.log"
   dependencies:
