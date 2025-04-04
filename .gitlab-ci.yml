@@ -79,24 +79,24 @@ extract_outputs_prod:
     reports:
       dotenv: variables_prod.env
 
-#build_image:
-#  image: docker:24.0.5
-#  services:
-#    - docker:24.0.5-dind
-#  stage: build
-#  only:
-#    - B-20-dockerize-and-deploy
-#  script:
-#    - echo "Logging into GitLab Container Registry..."
-#    - echo "$CI_JOB_TOKEN" | docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY
-#
-#    - echo "Building Docker image with docker-compose..."
-#    - docker-compose build
-#
-#    - IMAGE_NAME=$(docker images --format "{{.Repository}}:{{.Tag}}" | head -n 1)
-#
-#    - docker tag $IMAGE_NAME $CI_REGISTRY_IMAGE:latest
-#    - docker push $CI_REGISTRY_IMAGE:latest
+build_image:
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  stage: build
+  only:
+    - B-20-dockerize-and-deploy
+  script:
+    - echo "Logging into GitLab Container Registry..."
+    - echo "$CI_JOB_TOKEN" | docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY
+
+    - echo "Building Docker image with docker-compose..."
+    - docker-compose build
+
+    - IMAGE_NAME=$(docker images --format "{{.Repository}}:{{.Tag}}" | head -n 1)
+
+    - docker tag $IMAGE_NAME $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:latest
 
 deploy_to_ec2:
   stage: deploy
@@ -136,7 +136,7 @@ deploy_to_ec2:
       "
   dependencies:
     - terraform
-#    - build_image
+    - build_image
     - extract_outputs_dev
   artifacts:
     reports:
@@ -167,9 +167,20 @@ deploy_to_ec2_prod:
       -e DB_PASSWORD=$DB_PASSWORD_PROD
       -e JWT_SECRET=$JWT_SECRET_PROD
       $CI_REGISTRY_IMAGE"
+
+    - sed "s/__DOMAIN_NAME__/$DOMAIN_NAME_PROD/g" nginx/default.conf.template > nginx/default.conf
+    - scp nginx/default.conf ubuntu@$EC2_PUBLIC_IP_PROD:/home/ubuntu/default.conf
+
+    - ssh ubuntu@$EC2_PUBLIC_IP_PROD "
+      exec > /home/ubuntu/cert.log 2>&1 &&
+      sudo mv /home/ubuntu/default.conf /etc/nginx/sites-available/default &&
+      sudo systemctl reload nginx &&
+      sudo certbot --nginx -d $DOMAIN_NAME_PROD --non-interactive --agree-tos --email $EMAIL &&
+      sudo systemctl reload nginx
+      "
   dependencies:
     - terraform
-#    - build_image
+    - build_image
     - extract_outputs_prod
   artifacts:
     reports:
