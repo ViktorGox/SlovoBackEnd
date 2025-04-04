@@ -77,12 +77,12 @@ deploy_to_ec2:
       sudo apt-get update && sudo apt-get install -y docker.io &&
       echo "$EC2_TOKEN" | sudo docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY &&
       sudo docker pull $CI_REGISTRY_IMAGE:latest &&
-      sudo docker rm -f backend 2>/dev/null || true
-      sudo docker run -d --name backend -p 8080:8080 \
-      -e DB_URL=$DB_URL \
-      -e DB_USERNAME=$DB_USERNAME \
-      -e DB_PASSWORD=$DB_PASSWORD \
-      -e JWT_SECRET=$JWT_SECRET \
+      sudo docker rm -f backend 2>/dev/null || true &&
+      sudo docker run -d --name backend -p 8080:8080 
+      -e DB_URL=$DB_URL 
+      -e DB_USERNAME=$DB_USERNAME 
+      -e DB_PASSWORD=$DB_PASSWORD 
+      -e JWT_SECRET=$JWT_SECRET 
       $CI_REGISTRY_IMAGE"
   dependencies:
     - terraform
