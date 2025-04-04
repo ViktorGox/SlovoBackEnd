@@ -175,7 +175,7 @@ resource "tls_private_key" "my_key_prod" {
 }
 
 resource "aws_key_pair" "my_key_pair_prod" {
-  key_name   = "my-key-pair"
+  key_name   = "my-key-pair-prod"
   public_key = tls_private_key.my_key_prod.public_key_openssh
 }
 
