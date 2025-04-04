@@ -79,24 +79,24 @@ extract_outputs_prod:
     reports:
       dotenv: variables_prod.env
 
-build_image:
-  image: docker:24.0.5
-  services:
-    - docker:24.0.5-dind
-  stage: build
-  only:
-    - B-20-dockerize-and-deploy
-  script:
-    - echo "Logging into GitLab Container Registry..."
-    - echo "$CI_JOB_TOKEN" | docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY
-
-    - echo "Building Docker image with docker-compose..."
-    - docker-compose build
-
-    - IMAGE_NAME=$(docker images --format "{{.Repository}}:{{.Tag}}" | head -n 1)
-
-    - docker tag $IMAGE_NAME $CI_REGISTRY_IMAGE:latest
-    - docker push $CI_REGISTRY_IMAGE:latest
+#build_image:
+#  image: docker:24.0.5
+#  services:
+#    - docker:24.0.5-dind
+#  stage: build
+#  only:
+#    - B-20-dockerize-and-deploy
+#  script:
+#    - echo "Logging into GitLab Container Registry..."
+#    - echo "$CI_JOB_TOKEN" | docker login -u "gitlab-ci-token" --password-stdin $CI_REGISTRY
+#
+#    - echo "Building Docker image with docker-compose..."
+#    - docker-compose build
+#
+#    - IMAGE_NAME=$(docker images --format "{{.Repository}}:{{.Tag}}" | head -n 1)
+#
+#    - docker tag $IMAGE_NAME $CI_REGISTRY_IMAGE:latest
+#    - docker push $CI_REGISTRY_IMAGE:latest
 
 deploy_to_ec2:
   stage: deploy
