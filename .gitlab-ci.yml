@@ -81,6 +81,7 @@ deploy_to_ec2:
       -e DB_URL=$DB_URL
       -e DB_USERNAME=$DB_USERNAME
       -e DB_PASSWORD=$DB_PASSWORD
+      -e JWT_SECRET=$JWT_SECRET
       $CI_REGISTRY_IMAGE"
   dependencies:
     - terraform
