@@ -97,6 +97,12 @@ public class JwtUtils {
                 if (storedRefreshToken.isEmpty() || !passwordEncoder.matches(token, storedRefreshToken.get().token)) {
                     return null; // Token does not exist in the DB or doesn't match
                 }
+            } else  if (expectedType.equals("access")) {
+                Optional<AccessToken> storedAccessToken = accessTokenRepository.findByUserId(userId);
+
+                if (storedAccessToken.isEmpty() || !passwordEncoder.matches(token, storedAccessToken.get().token)) {
+                    return null; // Token does not exist in the DB or doesn't match
+                }
             }
 
             return userId; // Token is valid, return the user ID
