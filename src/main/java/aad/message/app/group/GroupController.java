@@ -2,15 +2,14 @@ package aad.message.app.group;
 
 import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
-import aad.message.app.group_user_role.GroupUserRoleRepository;
+import aad.message.app.group.user.role.GroupUserRoleRepository;
 import aad.message.app.message.Message;
 import aad.message.app.message.MessageService;
 import aad.message.app.returns.Responses;
-import aad.message.app.group_user_role.GroupUserRole;
+import aad.message.app.group.user.role.GroupUserRole;
 import aad.message.app.role.Role;
 import aad.message.app.role.RoleService;
 import aad.message.app.user.UserRoleMessageDTO;
-import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -98,10 +97,10 @@ public class GroupController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createGroup(@Valid @RequestPart(value = "dto") CreateGroupDTO createGroupDTO,
+    public ResponseEntity<?> createGroup(@RequestPart(value = "dto", required = false) CreateGroupDTO createGroupDTO,
                                          @RequestPart(value = "file", required = false) MultipartFile file) {
-        if (createGroupDTO.name == null || createGroupDTO.name.trim().isEmpty()) {
-            return Responses.error("Group name is required.");
+        if (createGroupDTO == null || createGroupDTO.name == null || createGroupDTO.name.trim().isEmpty()) {
+            return Responses.error("Field 'name' is missing");
         }
 
         try {
@@ -152,7 +151,7 @@ public class GroupController {
     }
 
     @PutMapping("/{id}/name")
-    public ResponseEntity<?> updateGroupName(@PathVariable Long id, @RequestBody GroupNameUpdateDTO dto) {
+    public ResponseEntity<?> updateGroupName(@PathVariable Long id, @RequestBody(required = false) GroupNameUpdateDTO dto) {
         try {
             Optional<Group> groupOptional = groupService.getGroupById(id);
             if (groupOptional.isEmpty()) {
@@ -245,7 +244,7 @@ public class GroupController {
     @PutMapping("/{group_id}/reminder")
     public ResponseEntity<?> updateGroupReminder(
             @PathVariable("group_id") Long groupId,
-            @RequestBody ReminderUpdateDTO reminderUpdateDTO) {
+            @RequestBody(required = false) ReminderUpdateDTO reminderUpdateDTO) {
         try {
             Optional<Group> groupOptional = groupService.getGroupById(groupId);
             if (groupOptional.isEmpty()) {

@@ -1,7 +1,9 @@
 package aad.message.app.jwt;
 
-import aad.message.app.refresh_token.RefreshToken;
-import aad.message.app.refresh_token.RefreshTokenRepository;
+import aad.message.app.acess.token.AccessToken;
+import aad.message.app.acess.token.AccessTokenRepository;
+import aad.message.app.refresh.token.RefreshToken;
+import aad.message.app.refresh.token.RefreshTokenRepository;
 import aad.message.app.user.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -20,23 +22,36 @@ public class JwtUtils {
     private static final long REFRESH_TOKEN_EXPIRATION = 604800000; // 7 days
     private final Key key;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final AccessTokenRepository accessTokenRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
 
-    public JwtUtils(@Value("${jwt.secret}") String secretKey, RefreshTokenRepository refreshTokenRepository) {
+    public JwtUtils(@Value("${jwt.secret}") String secretKey, RefreshTokenRepository refreshTokenRepository, AccessTokenRepository accessTokenRepository) {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
         this.refreshTokenRepository = refreshTokenRepository;
+        this.accessTokenRepository = accessTokenRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
-    public String generateAccessToken(Long userId) {
-        return Jwts.builder()
-                .setSubject(String.valueOf(userId))
+    public String generateAccessToken(User user) {
+        Optional<AccessToken> existingAccessToken = accessTokenRepository.findByUser(user);
+        existingAccessToken.ifPresent(accessTokenRepository::delete);
+
+        String accessToken = Jwts.builder()
+                .setSubject(String.valueOf(user.id))
                 .claim("type", "access")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+
+        String hashedAccessToken = passwordEncoder.encode(accessToken);
+
+        Date accessTokenExpiryDate = new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION);
+        AccessToken newAccessTokenObj = new AccessToken(hashedAccessToken, user, accessTokenExpiryDate);
+        accessTokenRepository.save(newAccessTokenObj);
+
+        return accessToken;
     }
 
     public String generateRefreshToken(User user) {
@@ -80,6 +95,12 @@ public class JwtUtils {
                 Optional<RefreshToken> storedRefreshToken = refreshTokenRepository.findByUserId(userId);
 
                 if (storedRefreshToken.isEmpty() || !passwordEncoder.matches(token, storedRefreshToken.get().token)) {
+                    return null; // Token does not exist in the DB or doesn't match
+                }
+            } else  if (expectedType.equals("access")) {
+                Optional<AccessToken> storedAccessToken = accessTokenRepository.findByUserId(userId);
+
+                if (storedAccessToken.isEmpty() || !passwordEncoder.matches(token, storedAccessToken.get().token)) {
                     return null; // Token does not exist in the DB or doesn't match
                 }
             }

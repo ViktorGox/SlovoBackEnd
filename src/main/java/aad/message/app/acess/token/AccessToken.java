@@ -1,11 +1,13 @@
-package aad.message.app.refresh_token;
+package aad.message.app.acess.token;
 
 import aad.message.app.user.User;
 import jakarta.persistence.*;
+
 import java.util.Date;
 
 @Entity
-public class RefreshToken {
+@Table(name = "access_token")
+public class AccessToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,15 +23,12 @@ public class RefreshToken {
     @Column(nullable = false)
     public Date expiryDate;
 
-    public RefreshToken() {}
+    public AccessToken() {
+    }
 
-    public RefreshToken(String token, User user, Date expiryDate) {
+    public AccessToken(String token, User user, Date expiryDate) {
         this.token = token;
         this.user = user;
         this.expiryDate = expiryDate;
-    }
-
-    public boolean isExpired() {
-        return new Date().after(expiryDate);
     }
 }

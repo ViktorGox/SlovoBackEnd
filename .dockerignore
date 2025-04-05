@@ -1,0 +1,9 @@
+.gradle/
+build/
+.idea
+docker-compose.yml
+Dockerfile
+gradlew.bat
+.git
+.gitattributes
+.gitignore

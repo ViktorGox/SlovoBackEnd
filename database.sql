@@ -1,4 +1,4 @@
-CREATE TABLE "user" (
+CREATE TABLE \"user\" (
                         id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                         username TEXT UNIQUE NOT NULL,
                         password TEXT NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE "user" (
                         image_url TEXT
 );
 
-CREATE TABLE "group" (
+CREATE TABLE \"group\" (
                          id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                          name TEXT NOT NULL,
                          image_url TEXT,
@@ -26,8 +26,8 @@ CREATE TABLE group_user_role (
                                  group_id INTEGER NOT NULL,
                                  user_id INTEGER NOT NULL,
                                  role_id INTEGER NOT NULL,
-                                 FOREIGN KEY (group_id) REFERENCES "group"(id),
-                                 FOREIGN KEY (user_id) REFERENCES "user"(id),
+                                 FOREIGN KEY (group_id) REFERENCES \"group\"(id),
+                                 FOREIGN KEY (user_id) REFERENCES \"user\"(id),
                                  FOREIGN KEY (role_id) REFERENCES role(id)
 );
 
@@ -38,14 +38,14 @@ CREATE TABLE message (
                          sent_date TIMESTAMP NOT NULL,
                          message_type TEXT CHECK (message_type IN ('text', 'audio')),
                          reply_to_message_id INTEGER NULL REFERENCES message(id),
-                         FOREIGN KEY (user_id) REFERENCES "user"(id)
+                         FOREIGN KEY (user_id) REFERENCES \"user\"(id)
 );
 
 CREATE TABLE message_text (
                               id INTEGER PRIMARY KEY REFERENCES message(id),
                               text TEXT NOT NULL,
                               group_id INTEGER NOT NULL,
-                              FOREIGN KEY (group_id) REFERENCES "group"(id)
+                              FOREIGN KEY (group_id) REFERENCES \"group\"(id)
 );
 
 CREATE TABLE message_audio (
@@ -59,23 +59,23 @@ CREATE TABLE message_audio_group (
                                      group_id INTEGER NOT NULL,
                                      PRIMARY KEY (message_audio_id, group_id),
                                      FOREIGN KEY (message_audio_id) REFERENCES message_audio(id) ON DELETE CASCADE,
-                                     FOREIGN KEY (group_id) REFERENCES "group"(id) ON DELETE CASCADE
+                                     FOREIGN KEY (group_id) REFERENCES \"group\"(id) ON DELETE CASCADE
 );
 
-CREATE TABLE "refresh_token" (
+CREATE TABLE \"refresh_token\" (
                                  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                                  token TEXT NOT NULL UNIQUE,
                                  user_id INTEGER NOT NULL,
                                  expiry_date TIMESTAMP NOT NULL,
-                                 FOREIGN KEY (user_id) REFERENCES "user"(id)
+                                 FOREIGN KEY (user_id) REFERENCES \"user\"(id)
 );
 
-CREATE TABLE "access_token" (
+CREATE TABLE \"access_token\" (
                                  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                                  token TEXT NOT NULL UNIQUE,
                                  user_id INTEGER NOT NULL,
                                  expiry_date TIMESTAMP NOT NULL,
-                                 FOREIGN KEY (user_id) REFERENCES "user"(id)
+                                 FOREIGN KEY (user_id) REFERENCES \"user\"(id)
 );
 
 INSERT INTO role (name) VALUES

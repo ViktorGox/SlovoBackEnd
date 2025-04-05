@@ -22,17 +22,14 @@ public class TranscriptionService {
     @Value("${deepgram.api.key}")
     private String apiKey;
 
-    @Value("${deepgram.file.path}")
-    private String uploadDir;
-
     public TranscriptionService(MessageAudioRepository messageAudioRepository) {
         this.messageAudioRepository = messageAudioRepository;
     }
 
     @Async
     public void transcribeAudio(MessageAudio message) throws IOException {
-        // TODO: This is kind of temporary, in AWS there won't be a path, it will be a link.
-        File savedFile = new File(uploadDir + message.audioUrl);
+        String projectRoot = System.getProperty("user.dir");
+        File savedFile = new File(projectRoot, "uploads/" + message.audioUrl);
 
         String configDeepgramModel = "nova-3";
 
