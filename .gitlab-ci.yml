@@ -87,7 +87,7 @@ extract_outputs_prod:
   cache:
     key: "terraform-cache-2025-33dd"
     paths:
-      - terraform.tfstate
+      - $CI_PROJECT_DIR/terraform.tfstate
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_NAME == "main"'
       when: always
