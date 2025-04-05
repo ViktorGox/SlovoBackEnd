@@ -1,11 +1,13 @@
 package aad.message.app.user;
 
+import aad.message.app.acess.token.AccessTokenService;
 import aad.message.app.filetransfer.FileType;
 import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.group.Group;
 import aad.message.app.group.GroupDTO;
 import aad.message.app.group.user.role.GroupUserRoleRepository;
 import aad.message.app.jwt.JwtUtils;
+import aad.message.app.refresh.token.RefreshTokenService;
 import aad.message.app.returns.Responses;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
@@ -29,18 +31,22 @@ public class UserController {
     private final FileUploadHandler fileUploadHandler;
     private final GroupUserRoleRepository groupUserRoleRepository;
     private final UserRepository userRepository;
+    private final RefreshTokenService refreshTokenService;
+    private final AccessTokenService accessTokenService;
 
     public UserController(UserRepository repository,
                           ApplicationContext context,
                           FileUploadHandler fileUploadHandler,
                           JwtUtils jwtUtils,
-                          GroupUserRoleRepository groupUserRoleRepository, UserRepository userRepository) {
+                          GroupUserRoleRepository groupUserRoleRepository, UserRepository userRepository, RefreshTokenService refreshTokenService, AccessTokenService accessTokenService) {
         this.repository = repository;
         this.context = context;
         this.fileUploadHandler = fileUploadHandler;
         this.jwtUtils = jwtUtils;
         this.groupUserRoleRepository = groupUserRoleRepository;
         this.userRepository = userRepository;
+        this.refreshTokenService = refreshTokenService;
+        this.accessTokenService = accessTokenService;
     }
 
     @GetMapping
@@ -144,6 +150,16 @@ public class UserController {
 
         repository.save(user);
         return ResponseEntity.ok().body(new UserDTO(userOptional.get()));
+    }
+
+    @DeleteMapping("/logout")
+    public ResponseEntity<?> logout() {
+        Long userId = getUserId();
+
+        refreshTokenService.deleteByUserId(userId);
+        accessTokenService.deleteByUserId(userId);
+
+        return Responses.ok("msg", "Logout successful");
     }
 
     /**

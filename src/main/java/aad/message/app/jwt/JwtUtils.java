@@ -47,7 +47,7 @@ public class JwtUtils {
 
         String hashedAccessToken = passwordEncoder.encode(accessToken);
 
-        Date accessTokenExpiryDate = new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION);
+        Date accessTokenExpiryDate = new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION);
         AccessToken newAccessTokenObj = new AccessToken(hashedAccessToken, user, accessTokenExpiryDate);
         accessTokenRepository.save(newAccessTokenObj);
 
