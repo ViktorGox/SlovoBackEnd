@@ -42,7 +42,7 @@ public class AuthController {
                     .body(Collections.singletonMap("error", "Invalid username or password"));
         }
 
-        String accessToken = jwtUtils.generateAccessToken(user.get().id);
+        String accessToken = jwtUtils.generateAccessToken(user.get());
         String refreshToken = jwtUtils.generateRefreshToken(user.get());
 
         // Return both tokens in the response
@@ -70,9 +70,11 @@ public class AuthController {
                     .body(Collections.singletonMap("error", "User not found"));
         }
 
-        String newAccessToken = jwtUtils.generateAccessToken(user.get().id);
+        String newAccessToken = jwtUtils.generateAccessToken(user.get());
+        String newRefreshToken  = jwtUtils.generateRefreshToken(user.get());
 
         return ResponseEntity.ok().body(Map.of(
+                "refreshToken", newRefreshToken,
                 "accessToken", newAccessToken
         ));
     }

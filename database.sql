@@ -70,6 +70,14 @@ CREATE TABLE \"refresh_token\" (
                                  FOREIGN KEY (user_id) REFERENCES \"user\"(id)
 );
 
+CREATE TABLE \"access_token\" (
+                                 id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                                 token TEXT NOT NULL UNIQUE,
+                                 user_id INTEGER NOT NULL,
+                                 expiry_date TIMESTAMP NOT NULL,
+                                 FOREIGN KEY (user_id) REFERENCES \"user\"(id)
+);
+
 INSERT INTO role (name) VALUES
                             ('User'),
                             ('Admin'),
