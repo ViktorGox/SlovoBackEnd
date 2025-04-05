@@ -107,7 +107,7 @@ public class UserController {
             userRepository.save(savedUser);
         }
 
-        String accessToken = jwtUtils.generateAccessToken(savedUser.id);
+        String accessToken = jwtUtils.generateAccessToken(savedUser);
         String refreshToken = jwtUtils.generateRefreshToken(savedUser);
 
         return ResponseEntity.ok()

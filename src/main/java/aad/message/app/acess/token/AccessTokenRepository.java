@@ -1,12 +1,12 @@
 package aad.message.app.acess.token;
 
-import aad.message.app.refresh_token.RefreshToken;
 import aad.message.app.user.User;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface AccessTokenRepository {
-    Optional<RefreshToken> findByUser(User user);
+public interface AccessTokenRepository extends JpaRepository<AccessToken, Long> {
+    Optional<AccessToken> findByUser(User user);
 
-    Optional<RefreshToken> findByUserId(Long userId);
+    Optional<AccessToken> findByUserId(Long userId);
 }
