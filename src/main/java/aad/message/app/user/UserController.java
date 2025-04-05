@@ -82,7 +82,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<?> register(@RequestPart(value = "dto") UserRegisterDTO dto,
+    public ResponseEntity<?> register(@RequestPart(value = "dto", required = false) UserRegisterDTO dto,
                                       @RequestPart(value = "file", required = false) MultipartFile file) {
         UserService userService = context.getBean(UserService.class);
         String uniquenessError = userService.checkUserUniqueness(dto);

@@ -16,27 +16,65 @@ import java.util.regex.Pattern;
 public class UpdateUserInterceptor implements HandlerInterceptor {
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^@]+@[^@]+\\.[^@]+$");
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException, ServletException {
         if (request.getMethod().equalsIgnoreCase("PUT")) {
+            String contentType = request.getContentType();
 
-            if (request.getContentType().startsWith("multipart/form-data")) {
-                Part dtoPart = request.getPart("dto");
-
-                if (dtoPart != null) {
-                    String dtoJson = new String(dtoPart.getInputStream().readAllBytes());
-
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    UserUpdateDTO dto = objectMapper.readValue(dtoJson, UserUpdateDTO.class);
-
-                    String error = validateInput(dto);
-                    if (error != null) {
-                        sendErrorResponse(response, error);
-                        return false;
-                    }
-                }
+            if (contentType == null) {
+                sendErrorResponse(response, "Missing Content-Type header.");
+                return false;
             }
+
+            if (contentType.startsWith("multipart/form-data")) {
+                Part dtoPart = request.getPart("dto");
+                if (dtoPart != null && dtoPart.getSize() > 0) {
+                    String dtoJson = new String(dtoPart.getInputStream().readAllBytes());
+                    UserUpdateDTO dto = objectMapper.readValue(dtoJson, UserUpdateDTO.class);
+                    return validateAndRespond(dto, response);
+                } else {
+                    sendErrorResponse(response, "Missing or empty 'dto' part in multipart request.");
+                    return false;
+                }
+
+            } else if (contentType.startsWith("application/json")) {
+                byte[] rawBody = request.getInputStream().readAllBytes();
+
+                if (rawBody.length == 0) {
+                    sendErrorResponse(response, "Request body is empty.");
+                    return false;
+                }
+
+                UserUpdateDTO dto;
+                try {
+                    dto = objectMapper.readValue(rawBody, UserUpdateDTO.class);
+                } catch (Exception e) {
+                    sendErrorResponse(response, "Malformed JSON body.");
+                    return false;
+                }
+
+                // Check if all fields are null
+                if (dto.firstName == null && dto.lastName == null && dto.email == null) {
+                    sendErrorResponse(response, "No user fields provided. At least one field is required.");
+                    return false;
+                }
+
+                return validateAndRespond(dto, response);
+            }
+        }
+
+        return true;
+    }
+
+
+
+    private boolean validateAndRespond(UserUpdateDTO dto, HttpServletResponse response) throws IOException {
+        String error = validateInput(dto);
+        if (error != null) {
+            sendErrorResponse(response, error);
+            return false;
         }
         return true;
     }
@@ -57,6 +95,6 @@ public class UpdateUserInterceptor implements HandlerInterceptor {
     private void sendErrorResponse(HttpServletResponse response, String errorMessage) throws IOException {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         response.setContentType("application/json");
-        new ObjectMapper().writeValue(response.getWriter(), java.util.Map.of("error", errorMessage));
+        objectMapper.writeValue(response.getWriter(), java.util.Map.of("error", errorMessage));
     }
 }

@@ -1,6 +1,7 @@
 package aad.message.app.middleware;
 
 import aad.message.app.user.UserRegisterDTO;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -22,7 +24,7 @@ public class RegisterInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException, ServletException {
         if (request.getMethod().equalsIgnoreCase("POST")) {
-
+            // Handle multipart/form-data
             if (request.getContentType().startsWith("multipart/form-data")) {
                 Part dtoPart = request.getPart("dto");
                 if (dtoPart != null) {
@@ -47,9 +49,40 @@ public class RegisterInterceptor implements HandlerInterceptor {
                     return false;
                 }
             }
+            // Handle application/json content type
+            else if (request.getContentType().startsWith("application/json")) {
+                String body = new String(request.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+
+                if (body.isEmpty()) {
+                    sendErrorResponse(response, "Request body cannot be empty.");
+                    return false;
+                }
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                try {
+                    UserRegisterDTO dto = objectMapper.readValue(body, UserRegisterDTO.class);
+
+                    // Verify required fields in the DTO
+                    Collection<String> missingFields = UserRegisterDTO.verify(dto);
+                    if (!missingFields.isEmpty()) {
+                        sendErrorResponse(response, "Missing fields: " + String.join(", ", missingFields));
+                        return false;
+                    }
+
+                    String error = validateInput(dto.username, dto.firstName, dto.lastName, dto.email, dto.password);
+                    if (error != null) {
+                        sendErrorResponse(response, error);
+                        return false;
+                    }
+                } catch (JsonProcessingException e) {
+                    sendErrorResponse(response, "Invalid JSON format.");
+                    return false;
+                }
+            }
         }
         return true;
     }
+
 
     private String validateInput(String username, String firstName, String lastName, String email, String password) {
         if (username == null || !USERNAME_PATTERN.matcher(username).matches()) {
