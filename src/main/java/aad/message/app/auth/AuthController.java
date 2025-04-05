@@ -71,8 +71,10 @@ public class AuthController {
         }
 
         String newAccessToken = jwtUtils.generateAccessToken(user.get());
+        String newRefreshToken  = jwtUtils.generateRefreshToken(user.get());
 
         return ResponseEntity.ok().body(Map.of(
+                "refreshToken", newRefreshToken,
                 "accessToken", newAccessToken
         ));
     }
