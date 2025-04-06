@@ -58,14 +58,14 @@ public class FileAccessInterceptor implements HandlerInterceptor {
             }
 
             if (fileType == FileType.GROUP_PICTURE) {
-                Long groupId = extractGroupIdFromFileName(fileName);
+                Long groupId = extractIdFromFileName(fileName);
                 if (!isUserPartOfGroup(user, groupId)) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.getWriter().write("User is not part of this group");
                     return false;
                 }
             } else if (fileType == FileType.PROFILE_PICTURE) {
-                Long userId = extractUserIdFromFileName(fileName);
+                Long userId = extractIdFromFileName(fileName);
                 if (!isUserProfileImageAccessible(user, userId)) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.getWriter().write("User cannot access this profile image");
@@ -74,7 +74,7 @@ public class FileAccessInterceptor implements HandlerInterceptor {
             }
         } else if (requestURI.contains("/files/audio/")) {
             String fileName = requestURI.substring(requestURI.lastIndexOf("/") + 1);
-            Long messageId = extractMessageIdFromFileName(fileName);
+            Long messageId = extractIdFromFileName(fileName);
 
             if (!isUserAuthorizedForMessage(user, messageId)) {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
@@ -113,31 +113,7 @@ public class FileAccessInterceptor implements HandlerInterceptor {
         return null;
     }
 
-    private Long extractGroupIdFromFileName(String fileName) {
-        String[] parts = fileName.split("-");
-        String value = parts[5].substring(2); // remove first 2 characters
-        int dotIndex = value.indexOf('.');    // find index of the first dot
-
-        if (dotIndex != -1) {
-            value = value.substring(0, dotIndex); // take up to the dot
-        }
-
-        return Long.parseLong(value);
-    }
-
-    private Long extractUserIdFromFileName(String fileName) {
-        String[] parts = fileName.split("-");
-        String value = parts[5].substring(2); // remove first 2 characters
-        int dotIndex = value.indexOf('.');    // find index of the first dot
-
-        if (dotIndex != -1) {
-            value = value.substring(0, dotIndex); // take up to the dot
-        }
-
-        return Long.parseLong(value);
-    }
-
-    private Long extractMessageIdFromFileName(String fileName) {
+    private Long extractIdFromFileName(String fileName) {
         String[] parts = fileName.split("-");
         String value = parts[5].substring(2); // remove first 2 characters
         int dotIndex = value.indexOf('.');    // find index of the first dot

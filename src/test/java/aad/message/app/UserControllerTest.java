@@ -1,8 +1,11 @@
 package aad.message.app;
 
+import aad.message.app.group.GroupRepository;
+import aad.message.app.group.GroupService;
 import aad.message.app.jwt.JwtUtils;
 import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.group.user.role.GroupUserRoleRepository;
+import aad.message.app.message.MessageRepository;
 import aad.message.app.refresh.token.RefreshTokenService;
 import aad.message.app.acess.token.AccessTokenService;
 import aad.message.app.user.*;
@@ -31,9 +34,12 @@ public class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
+    @MockitoBean
+    private MessageRepository messageRepository;
     @MockitoBean
     private UserRepository userRepository;
+    @MockitoBean
+    GroupRepository groupRepository;
 
     @MockitoBean
     private JwtUtils jwtUtils;
@@ -51,6 +57,8 @@ public class UserControllerTest {
     private AccessTokenService accessTokenService;
     @MockitoBean
     private UserService userService;
+    @MockitoBean
+    private GroupService groupService;
 
     @InjectMocks
     private UserController userController;
