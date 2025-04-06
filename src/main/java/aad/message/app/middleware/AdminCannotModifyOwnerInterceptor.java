@@ -12,6 +12,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Map;
 import java.util.Optional;
 
+import static aad.message.app.middleware.ResponseUtil.writeErrorResponse;
+
 @Component
 public class AdminCannotModifyOwnerInterceptor implements HandlerInterceptor {
 
@@ -29,8 +31,7 @@ public class AdminCannotModifyOwnerInterceptor implements HandlerInterceptor {
 
         String groupIdStr = pathVariables.getOrDefault("id", pathVariables.get("group_id"));
         if (groupIdStr == null) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Missing group ID");
+            writeErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Missing group ID");
             return false;
         }
 
@@ -38,15 +39,13 @@ public class AdminCannotModifyOwnerInterceptor implements HandlerInterceptor {
         try {
             groupId = Long.parseLong(groupIdStr);
         } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Invalid group ID format");
+            writeErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid group ID format");
             return false;
         }
 
         String targetUserIdStr = pathVariables.get("user_id");
         if (targetUserIdStr == null) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Missing target user ID");
+            writeErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Missing target user ID");
             return false;
         }
 
@@ -54,8 +53,7 @@ public class AdminCannotModifyOwnerInterceptor implements HandlerInterceptor {
         try {
             targetUserId = Long.parseLong(targetUserIdStr);
         } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Invalid target user ID format");
+            writeErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid target user ID format");
             return false;
         }
 
@@ -66,16 +64,14 @@ public class AdminCannotModifyOwnerInterceptor implements HandlerInterceptor {
 
         // If either role is missing, deny access
         if (targetUserRole.isEmpty() || currentUserRole.isEmpty()) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.getWriter().write("User role not found in group");
+            writeErrorResponse(response, HttpServletResponse.SC_FORBIDDEN, "User role not found in group");
             return false;
         }
 
         // If the current user is an Admin and trying to modify an Owner, block it
         if (currentUserRole.get().role.name.equalsIgnoreCase("Admin") &&
                 targetUserRole.get().role.name.equalsIgnoreCase("Owner")) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.getWriter().write("Admins cannot modify Owners");
+            writeErrorResponse(response, HttpServletResponse.SC_FORBIDDEN, "Admins cannot modify Owners");
             return false;
         }
 

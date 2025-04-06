@@ -5,7 +5,7 @@ COPY . .
 
 RUN chmod +x gradlew
 
-RUN ./gradlew bootJar --no-daemon
+RUN ./gradlew build
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app

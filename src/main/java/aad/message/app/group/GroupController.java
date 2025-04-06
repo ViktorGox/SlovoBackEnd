@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -332,4 +333,27 @@ public class GroupController {
             return Responses.internalError("An error occurred while removing yourself from the group.");
         }
     }
+
+    @DeleteMapping("/{group_id}")
+    public ResponseEntity<?> deleteGroup(@PathVariable("group_id") Long groupId) {
+        try {
+            Optional<Group> groupOptional = groupService.getGroupById(groupId);
+            if (groupOptional.isEmpty()) {
+                return Responses.notFound("Group not found.");
+            }
+
+            Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Optional<GroupUserRole> groupUserRole = groupUserRoleRepository.findByUserIdAndGroupId(userId, groupId);
+            if (groupUserRole.isEmpty() || !groupUserRole.get().role.name.equals("Owner")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "You are not allowed to perform this action."));
+            }
+
+            groupService.deleteGroup(groupId);
+            return ResponseEntity.ok().build();
+
+        } catch (Exception e) {
+            return Responses.internalError("An error occurred while deleting the group.");
+        }
+    }
+
 }

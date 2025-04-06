@@ -14,6 +14,8 @@ import org.springframework.web.servlet.HandlerMapping;
 import java.util.Map;
 import java.util.Optional;
 
+import static aad.message.app.middleware.ResponseUtil.writeErrorResponse;
+
 @Component
 public class AdminOwnerInterceptor implements HandlerInterceptor {
 
@@ -31,8 +33,7 @@ public class AdminOwnerInterceptor implements HandlerInterceptor {
         Optional<User> userOptional = userRepository.findById(userId);
 
         if (userOptional.isEmpty()) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Unauthorized");
+            writeErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
             return false;
         }
 
@@ -41,8 +42,7 @@ public class AdminOwnerInterceptor implements HandlerInterceptor {
         String groupIdStr = pathVariables.getOrDefault("id", pathVariables.get("group_id"));
 
         if (groupIdStr == null) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Invalid group ID");
+            writeErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid group ID");
             return false;
         }
 
@@ -50,24 +50,21 @@ public class AdminOwnerInterceptor implements HandlerInterceptor {
         try {
             groupId = Long.parseLong(groupIdStr);
         } catch (NumberFormatException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            response.getWriter().write("Invalid group ID format");
+            writeErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid group ID format");
             return false;
         }
 
         Optional<GroupUserRole> groupUserRoleOptional = groupUserRoleRepository.findByUserIdAndGroupId(userId, groupId);
 
         if (groupUserRoleOptional.isEmpty()) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.getWriter().write("Forbidden: No role found.");
+            writeErrorResponse(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden: No role found.");
             return false;
         }
 
         String role = groupUserRoleOptional.get().role.name;
 
         if (!"Owner".equals(role) && !"Admin".equals(role)) {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.getWriter().write("Forbidden: You must be an Admin or Owner.");
+            writeErrorResponse(response, HttpServletResponse.SC_FORBIDDEN, "Forbidden: You must be an Admin or Owner.");
             return false;
         }
 

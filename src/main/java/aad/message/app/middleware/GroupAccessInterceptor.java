@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static aad.message.app.middleware.ResponseUtil.writeErrorResponse;
+
 @Component
 public class GroupAccessInterceptor implements HandlerInterceptor {
     private final GroupUserRoleRepository groupUserRoleRepository;
@@ -28,14 +30,14 @@ public class GroupAccessInterceptor implements HandlerInterceptor {
             Long groupId = Long.parseLong(matcher.group(3));
 
             if(isUnauthorizedForGroup(groupUserRoleRepository, List.of(groupId))) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "You are not a member of this group.");
+                writeErrorResponse(response, HttpServletResponse.SC_FORBIDDEN, "You are not a member of this group.");
                 return false;
             }
             else {
                 return true;
             }
         }
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized request.");
+        writeErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized request.");
         return false;
     }
 

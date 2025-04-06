@@ -38,9 +38,9 @@ application {
 	mainClass = 'aad.message.app.Application'
 }
 
-//tasks.named('test') {
-//	useJUnitPlatform()
-//}
+tasks.named('test') {
+	useJUnitPlatform()
+}
 
 tasks.named('bootJar') {
 	archiveFileName.set("slovoBackend.jar")

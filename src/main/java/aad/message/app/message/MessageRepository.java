@@ -15,4 +15,16 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
                 WHERE mt.group.id = :groupId OR g.id = :groupId
             """)
     Page<Message> getMessagesByGroupId(@Param("groupId") Long groupId, Pageable pageable);
+    @Query("""
+    SELECT COUNT(mg) > 0 
+    FROM MessageAudioGroup mg 
+    WHERE mg.messageAudio.id = :messageId 
+      AND mg.group.id IN (
+        SELECT gur.group.id 
+        FROM GroupUserRole gur 
+        WHERE gur.user.id = :userId
+      )
+""")
+    boolean isUserAuthorizedForMessage(@Param("userId") Long userId, @Param("messageId") Long messageId);
+
 }
