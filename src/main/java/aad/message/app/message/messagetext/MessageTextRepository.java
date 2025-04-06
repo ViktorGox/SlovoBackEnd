@@ -1,5 +1,6 @@
 package aad.message.app.message.messagetext;
 
+import aad.message.app.group.Group;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -11,4 +12,6 @@ public interface MessageTextRepository extends JpaRepository<MessageText, Long> 
     Optional<MessageText> findTopByGroupIdOrderBySentDateDesc(Long groupId);
 
     Optional<MessageText> findTopByUserIdAndGroupIdOrderBySentDateDesc(Long userId, Long groupId);
+    void deleteByGroup(Group group);
+
 }

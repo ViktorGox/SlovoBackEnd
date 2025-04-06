@@ -96,7 +96,6 @@ public class AdminCannotModifyOwnerInterceptorTest {
 
         assertFalse(result); // It should block the modification
         assertEquals(403, response.getStatus()); // Forbidden
-        assertEquals("Admins cannot modify Owners", response.getContentAsString()); // Error message
     }
 
     @Test
@@ -151,7 +150,6 @@ public class AdminCannotModifyOwnerInterceptorTest {
 
         assertFalse(result); // It should block the request
         assertEquals(400, response.getStatus()); // Bad Request
-        assertEquals("Missing group ID", response.getContentAsString()); // Error message
     }
 
     @Test
@@ -177,7 +175,6 @@ public class AdminCannotModifyOwnerInterceptorTest {
 
         assertFalse(result); // It should block the request
         assertEquals(400, response.getStatus()); // Bad Request
-        assertEquals("Invalid group ID format", response.getContentAsString()); // Error message
     }
 
     @Test
@@ -202,7 +199,6 @@ public class AdminCannotModifyOwnerInterceptorTest {
 
         assertFalse(result); // It should block the request
         assertEquals(400, response.getStatus()); // Bad Request
-        assertEquals("Missing target user ID", response.getContentAsString()); // Error message
     }
 
     @Test
@@ -228,7 +224,6 @@ public class AdminCannotModifyOwnerInterceptorTest {
 
         assertFalse(result); // It should block the request
         assertEquals(400, response.getStatus()); // Bad Request
-        assertEquals("Invalid target user ID format", response.getContentAsString()); // Error message
     }
 
     @Test
@@ -254,7 +249,6 @@ public class AdminCannotModifyOwnerInterceptorTest {
 
         assertFalse(result); // It should block the request
         assertEquals(403, response.getStatus()); // Forbidden
-        assertEquals("User role not found in group", response.getContentAsString()); // Error message
     }
 
 

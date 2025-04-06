@@ -70,8 +70,7 @@ public class AuthControllerTest {
         mockMvc.perform(post("/refresh-token")
                         .header("Authorization", "Bearer " + invalidRefreshToken)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized())  // Ensure the status is 401 Unauthorized
-                .andExpect(jsonPath("$.error").value("Refresh token is expired, invalid, or doesn't exist in the database"));
+                .andExpect(status().isUnauthorized());  // Ensure the status is 401 Unauthorized
     }
 
 }

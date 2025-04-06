@@ -12,8 +12,9 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Map;
 import java.util.regex.Pattern;
+
+import static aad.message.app.middleware.ResponseUtil.writeErrorResponse;
 
 @Component
 public class RegisterInterceptor implements HandlerInterceptor {
@@ -27,7 +28,7 @@ public class RegisterInterceptor implements HandlerInterceptor {
             String contentType = request.getContentType();
 
             if (contentType == null || !contentType.startsWith("multipart/form-data")) {
-                sendErrorResponse(response, "Invalid Content-Type. Must be 'multipart/form-data'.");
+                writeErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid Content-Type. Must be 'multipart/form-data'.");
                 return false;
             }
 
@@ -41,23 +42,23 @@ public class RegisterInterceptor implements HandlerInterceptor {
                 try {
                     dto = objectMapper.readValue(dtoJson, UserRegisterDTO.class);
                 } catch (JsonProcessingException e) {
-                    sendErrorResponse(response, "Invalid JSON format in 'dto' part: " + e.getMessage());
+                    writeErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON format in 'dto' part: " + e.getMessage());
                     return false;
                 }
 
                 Collection<String> missingFields = UserRegisterDTO.verify(dto);
                 if (!missingFields.isEmpty()) {
-                    sendErrorResponse(response, "Missing fields: " + String.join(", ", missingFields));
+                    writeErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Missing fields: " + String.join(", ", missingFields));
                     return false;
                 }
 
                 String error = validateInput(dto.username, dto.firstName, dto.lastName, dto.email, dto.password);
                 if (error != null) {
-                    sendErrorResponse(response, error);
+                    writeErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, error);
                     return false;
                 }
             } else {
-                sendErrorResponse(response, "Missing 'dto' part in the multipart request.");
+                writeErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Missing 'dto' part in the multipart request.");
                 return false;
             }
         }
@@ -81,11 +82,5 @@ public class RegisterInterceptor implements HandlerInterceptor {
             return "Password must be at least 6 characters long.";
         }
         return null;
-    }
-
-    private void sendErrorResponse(HttpServletResponse response, String errorMessage) throws IOException {
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        response.setContentType("application/json");
-        new ObjectMapper().writeValue(response.getWriter(), Map.of("error", errorMessage));
     }
 }

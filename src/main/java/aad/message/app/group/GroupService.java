@@ -1,11 +1,15 @@
 package aad.message.app.group;
 
+import aad.message.app.filetransfer.FileUploadHandler;
 import aad.message.app.group.user.role.GroupUserRole;
 import aad.message.app.group.user.role.GroupUserRoleRepository;
 import aad.message.app.message.Message;
 import aad.message.app.message.MessageService;
 import aad.message.app.message.RecentMessageDTO;
+import aad.message.app.message.messageaudio.MessageAudio;
+import aad.message.app.message.messageaudio.MessageAudioRepository;
 import aad.message.app.message.messagetext.MessageText;
+import aad.message.app.message.messagetext.MessageTextRepository;
 import aad.message.app.role.Role;
 import aad.message.app.role.RoleRepository;
 import aad.message.app.user.User;
@@ -27,13 +31,19 @@ public class GroupService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final MessageService messageService;
+    private final MessageAudioRepository messageAudioRepository;
+    private final MessageTextRepository messageTextRepository;
+    private final FileUploadHandler fileUploadHandler;
 
-    public GroupService(GroupRepository groupRepository, GroupUserRoleRepository groupUserRoleRepository, UserRepository userRepository, RoleRepository roleRepository, MessageService messageService) {
+    public GroupService(GroupRepository groupRepository, GroupUserRoleRepository groupUserRoleRepository, UserRepository userRepository, RoleRepository roleRepository, MessageService messageService, MessageAudioRepository messageAudioRepository, MessageTextRepository messageTextRepository, FileUploadHandler fileUploadHandler) {
         this.groupRepository = groupRepository;
         this.groupUserRoleRepository = groupUserRoleRepository;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.messageService = messageService;
+        this.messageAudioRepository = messageAudioRepository;
+        this.messageTextRepository = messageTextRepository;
+        this.fileUploadHandler = fileUploadHandler;
     }
     @Transactional
     public Group createGroup(CreateGroupDTO createGroupDTO) {
@@ -148,4 +158,39 @@ public class GroupService {
 
         return recentChats;
     }
+
+    @Transactional
+    public void deleteGroup(Long groupId) {
+        Optional<Group> optionalGroup = groupRepository.findById(groupId);
+        if (optionalGroup.isEmpty()) {
+            throw new IllegalArgumentException("Group not found");
+        }
+        Group group = optionalGroup.get();
+
+        messageTextRepository.deleteByGroup(group);
+
+        List<MessageAudio> audioMessages = messageAudioRepository.findAllByGroups_Id(groupId);
+        for (MessageAudio audio : audioMessages) {
+            audio.groups.remove(group);
+
+            if (audio.groups.isEmpty()) {
+                messageAudioRepository.delete(audio);
+            } else {
+                messageAudioRepository.save(audio);
+            }
+        }
+
+        // Step 3: Delete all user roles for the group
+        groupUserRoleRepository.deleteAllByGroup(group);
+
+        // Step 4: If the group has a custom image, delete it
+        if (group.imageUrl != null && !group.imageUrl.equals("gp_default.png")) {
+            fileUploadHandler.removeFile(group.imageUrl);
+        }
+
+        // Step 5: Finally, delete the group
+        groupRepository.delete(group);
+    }
+
+
 }

@@ -18,5 +18,6 @@ public interface MessageAudioRepository extends JpaRepository<MessageAudio, Long
             "LIMIT 1")
     Optional<MessageAudio> findTopByUserIdAndGroupIdOrderBySentDateDesc(@Param("userId") Long userId,
                                                                         @Param("groupId") Long groupId);
+    List<MessageAudio> findAllByGroups_Id(Long groupId);
 }
 

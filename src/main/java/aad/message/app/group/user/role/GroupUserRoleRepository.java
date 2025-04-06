@@ -1,5 +1,6 @@
 package aad.message.app.group.user.role;
 
+import aad.message.app.group.Group;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -16,4 +17,5 @@ public interface GroupUserRoleRepository extends JpaRepository<GroupUserRole, Lo
     Optional<GroupUserRole> findByUserIdAndGroupId(Long userId, Long groupId);
 
     Optional<GroupUserRole> findFirstByGroupIdAndRoleName(Long groupId, String roleName);
+    void deleteAllByGroup(Group group);
 }
