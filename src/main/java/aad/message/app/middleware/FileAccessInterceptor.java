@@ -14,6 +14,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.Optional;
 
+import static aad.message.app.middleware.ResponseUtil.writeErrorResponse;
+
 @Component
 public class FileAccessInterceptor implements HandlerInterceptor {
 
@@ -36,14 +38,13 @@ public class FileAccessInterceptor implements HandlerInterceptor {
 
         if (id == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Unauthorized");
+            writeErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
             return false;
         }
 
         Optional<User> userOpt = userRepository.findById(id);
         if (userOpt.isEmpty()) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("User not found");
+            writeErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "User not found");
             return false;
         }
 
@@ -60,15 +61,13 @@ public class FileAccessInterceptor implements HandlerInterceptor {
             if (fileType == FileType.GROUP_PICTURE) {
                 Long groupId = extractIdFromFileName(fileName);
                 if (!isUserPartOfGroup(user, groupId)) {
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    response.getWriter().write("User is not part of this group");
+                    writeErrorResponse(response, HttpServletResponse.SC_FORBIDDEN, "User is not part of this group");
                     return false;
                 }
             } else if (fileType == FileType.PROFILE_PICTURE) {
                 Long userId = extractIdFromFileName(fileName);
                 if (!isUserProfileImageAccessible(user, userId)) {
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    response.getWriter().write("User cannot access this profile image");
+                    writeErrorResponse(response, HttpServletResponse.SC_FORBIDDEN, "User cannot access this profile image");
                     return false;
                 }
             }
@@ -77,8 +76,7 @@ public class FileAccessInterceptor implements HandlerInterceptor {
             Long messageId = extractIdFromFileName(fileName);
 
             if (!isUserAuthorizedForMessage(user, messageId)) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.getWriter().write("User is not authorized to access this audio message");
+                writeErrorResponse(response, HttpServletResponse.SC_FORBIDDEN, "User is not authorized to access this audio message");
                 return false;
             }
         }

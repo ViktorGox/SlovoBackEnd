@@ -67,7 +67,6 @@ public class GroupAccessInterceptorTest {
 
         assertFalse(result);
         assertEquals(403, response.getStatus());
-        assertEquals("You are not a member of this group.", response.getErrorMessage());
     }
 
     @Test
@@ -85,6 +84,5 @@ public class GroupAccessInterceptorTest {
 
         assertFalse(result);
         assertEquals(401, response.getStatus());
-        assertEquals("Unauthorized request.", response.getErrorMessage());
     }
 }

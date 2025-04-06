@@ -12,6 +12,8 @@ import jakarta.servlet.http.Part;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import static aad.message.app.middleware.ResponseUtil.writeErrorResponse;
+
 @Component
 public class UpdateUserInterceptor implements HandlerInterceptor {
 
@@ -24,7 +26,7 @@ public class UpdateUserInterceptor implements HandlerInterceptor {
             String contentType = request.getContentType();
 
             if (contentType == null || !contentType.startsWith("multipart/form-data")) {
-                sendErrorResponse(response, "Invalid Content-Type. Must be 'multipart/form-data'.");
+                writeErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid Content-Type. Must be 'multipart/form-data'.");
                 return false;
             }
 
@@ -40,7 +42,7 @@ public class UpdateUserInterceptor implements HandlerInterceptor {
                 try {
                     dto = objectMapper.readValue(dtoJson, UserUpdateDTO.class);
                 } catch (Exception e) {
-                    sendErrorResponse(response, "Invalid JSON format in 'dto' part: " + e.getMessage());
+                    writeErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JSON format in 'dto' part: " + e.getMessage());
                     return false;
                 }
 
@@ -54,7 +56,7 @@ public class UpdateUserInterceptor implements HandlerInterceptor {
 
             // If there's no valid DTO, make sure at least a file is being sent
             if (!hasValidDto && (filePart == null || filePart.getSize() == 0)) {
-                sendErrorResponse(response, "No data provided. Must include either user fields or a file.");
+                writeErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "No data provided. Must include either user fields or a file.");
                 return false;
             }
         }
@@ -62,11 +64,10 @@ public class UpdateUserInterceptor implements HandlerInterceptor {
         return true;
     }
 
-
     private boolean validateAndRespond(UserUpdateDTO dto, HttpServletResponse response) throws IOException {
         String error = validateInput(dto);
         if (error != null) {
-            sendErrorResponse(response, error);
+            writeErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, error);
             return false;
         }
         return true;
@@ -83,11 +84,5 @@ public class UpdateUserInterceptor implements HandlerInterceptor {
             return "Invalid email format.";
         }
         return null;
-    }
-
-    private void sendErrorResponse(HttpServletResponse response, String errorMessage) throws IOException {
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        response.setContentType("application/json");
-        objectMapper.writeValue(response.getWriter(), java.util.Map.of("error", errorMessage));
     }
 }

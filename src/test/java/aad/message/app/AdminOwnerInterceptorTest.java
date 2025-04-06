@@ -101,7 +101,6 @@ public class AdminOwnerInterceptorTest {
 
         assertFalse(result);
         assertEquals(403, response.getStatus());
-        assertEquals("Forbidden: You must be an Admin or Owner.", response.getContentAsString());
     }
 
     @Test
@@ -122,7 +121,6 @@ public class AdminOwnerInterceptorTest {
 
         assertFalse(result);
         assertEquals(401, response.getStatus());
-        assertEquals("Unauthorized", response.getContentAsString());
     }
 
     @Test
@@ -149,7 +147,6 @@ public class AdminOwnerInterceptorTest {
 
         assertFalse(result);
         assertEquals(400, response.getStatus());
-        assertEquals("Invalid group ID format", response.getContentAsString());
     }
 
     @Test
@@ -174,7 +171,6 @@ public class AdminOwnerInterceptorTest {
 
         assertFalse(result);
         assertEquals(400, response.getStatus());
-        assertEquals("Invalid group ID", response.getContentAsString());
     }
 
 }

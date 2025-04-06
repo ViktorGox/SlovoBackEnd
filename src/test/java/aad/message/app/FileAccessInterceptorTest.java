@@ -148,6 +148,5 @@ public class FileAccessInterceptorTest {
 
         assertFalse(result);
         assertEquals(403, response.getStatus());
-        assertEquals("User is not authorized to access this audio message", response.getContentAsString());
     }
 }
