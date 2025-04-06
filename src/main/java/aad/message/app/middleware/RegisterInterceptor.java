@@ -4,15 +4,15 @@ import aad.message.app.user.UserRegisterDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerInterceptor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 @Component
@@ -24,65 +24,45 @@ public class RegisterInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException, ServletException {
         if (request.getMethod().equalsIgnoreCase("POST")) {
-            // Handle multipart/form-data
-            if (request.getContentType().startsWith("multipart/form-data")) {
-                Part dtoPart = request.getPart("dto");
-                if (dtoPart != null) {
-                    String dtoJson = new String(dtoPart.getInputStream().readAllBytes());
+            String contentType = request.getContentType();
 
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    UserRegisterDTO dto = objectMapper.readValue(dtoJson, UserRegisterDTO.class);
-
-                    Collection<String> missingFields = UserRegisterDTO.verify(dto);
-                    if (!missingFields.isEmpty()) {
-                        sendErrorResponse(response, "Missing fields: " + String.join(", ", missingFields));
-                        return false;
-                    }
-
-                    String error = validateInput(dto.username, dto.firstName, dto.lastName, dto.email, dto.password);
-                    if (error != null) {
-                        sendErrorResponse(response, error);
-                        return false;
-                    }
-                } else {
-                    sendErrorResponse(response, "Missing 'dto' part in the multipart request.");
-                    return false;
-                }
+            if (contentType == null || !contentType.startsWith("multipart/form-data")) {
+                sendErrorResponse(response, "Invalid Content-Type. Must be 'multipart/form-data'.");
+                return false;
             }
-            // Handle application/json content type
-            else if (request.getContentType().startsWith("application/json")) {
-                String body = new String(request.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 
-                if (body.isEmpty()) {
-                    sendErrorResponse(response, "Request body cannot be empty.");
-                    return false;
-                }
+            Part dtoPart = request.getPart("dto");
+            if (dtoPart != null && dtoPart.getSize() > 0) {
+                String dtoJson = new String(dtoPart.getInputStream().readAllBytes());
 
                 ObjectMapper objectMapper = new ObjectMapper();
+                UserRegisterDTO dto = null;
+
                 try {
-                    UserRegisterDTO dto = objectMapper.readValue(body, UserRegisterDTO.class);
-
-                    // Verify required fields in the DTO
-                    Collection<String> missingFields = UserRegisterDTO.verify(dto);
-                    if (!missingFields.isEmpty()) {
-                        sendErrorResponse(response, "Missing fields: " + String.join(", ", missingFields));
-                        return false;
-                    }
-
-                    String error = validateInput(dto.username, dto.firstName, dto.lastName, dto.email, dto.password);
-                    if (error != null) {
-                        sendErrorResponse(response, error);
-                        return false;
-                    }
+                    dto = objectMapper.readValue(dtoJson, UserRegisterDTO.class);
                 } catch (JsonProcessingException e) {
-                    sendErrorResponse(response, "Invalid JSON format.");
+                    sendErrorResponse(response, "Invalid JSON format in 'dto' part: " + e.getMessage());
                     return false;
                 }
+
+                Collection<String> missingFields = UserRegisterDTO.verify(dto);
+                if (!missingFields.isEmpty()) {
+                    sendErrorResponse(response, "Missing fields: " + String.join(", ", missingFields));
+                    return false;
+                }
+
+                String error = validateInput(dto.username, dto.firstName, dto.lastName, dto.email, dto.password);
+                if (error != null) {
+                    sendErrorResponse(response, error);
+                    return false;
+                }
+            } else {
+                sendErrorResponse(response, "Missing 'dto' part in the multipart request.");
+                return false;
             }
         }
         return true;
     }
-
 
     private String validateInput(String username, String firstName, String lastName, String email, String password) {
         if (username == null || !USERNAME_PATTERN.matcher(username).matches()) {

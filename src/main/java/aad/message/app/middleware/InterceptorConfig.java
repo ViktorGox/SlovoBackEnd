@@ -12,17 +12,21 @@ public class InterceptorConfig implements WebMvcConfigurer {
     private final AdminCannotModifyOwnerInterceptor adminCannotModifyOwnerInterceptor;
     private final RegisterInterceptor registerInterceptor;
     private final UpdateUserInterceptor updateUserInterceptor;
+    private final FileAccessInterceptor fileAccessInterceptor;
 
-    public InterceptorConfig(GroupAccessInterceptor groupAccessInterceptor, AdminOwnerInterceptor adminOwnerInterceptor, AdminCannotModifyOwnerInterceptor adminCannotModifyOwnerInterceptor, RegisterInterceptor registerInterceptor, UpdateUserInterceptor updateUserInterceptor) {
+    public InterceptorConfig(GroupAccessInterceptor groupAccessInterceptor, AdminOwnerInterceptor adminOwnerInterceptor, AdminCannotModifyOwnerInterceptor adminCannotModifyOwnerInterceptor, RegisterInterceptor registerInterceptor, UpdateUserInterceptor updateUserInterceptor, FileAccessInterceptor fileAccessInterceptor) {
         this.groupAccessInterceptor = groupAccessInterceptor;
         this.adminOwnerInterceptor = adminOwnerInterceptor;
         this.adminCannotModifyOwnerInterceptor = adminCannotModifyOwnerInterceptor;
         this.registerInterceptor = registerInterceptor;
         this.updateUserInterceptor = updateUserInterceptor;
+        this.fileAccessInterceptor = fileAccessInterceptor;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(fileAccessInterceptor)
+                .addPathPatterns("/files/**");
         registry.addInterceptor(updateUserInterceptor)
                 .addPathPatterns("/users");
         registry.addInterceptor(registerInterceptor)

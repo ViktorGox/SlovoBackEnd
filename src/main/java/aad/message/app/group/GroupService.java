@@ -86,6 +86,10 @@ public class GroupService {
         return groupUserRoleRepository.existsByGroupIdAndUserId(groupId, userId);
     }
 
+    public boolean doesUserShareGroup(Long userId, Long otherUserId) {
+        return groupRepository.doesUserShareGroup(userId, otherUserId);
+    }
+
     public void addUserToGroup(Long groupId, Long userId) {
         GroupUserRole groupUserRole = new GroupUserRole();
         groupUserRole.group = groupRepository.findById(groupId).orElseThrow();

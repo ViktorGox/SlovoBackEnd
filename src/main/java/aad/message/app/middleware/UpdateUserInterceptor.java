@@ -23,51 +23,44 @@ public class UpdateUserInterceptor implements HandlerInterceptor {
         if (request.getMethod().equalsIgnoreCase("PUT")) {
             String contentType = request.getContentType();
 
-            if (contentType == null) {
-                sendErrorResponse(response, "Missing Content-Type header.");
+            if (contentType == null || !contentType.startsWith("multipart/form-data")) {
+                sendErrorResponse(response, "Invalid Content-Type. Must be 'multipart/form-data'.");
                 return false;
             }
 
-            if (contentType.startsWith("multipart/form-data")) {
-                Part dtoPart = request.getPart("dto");
-                if (dtoPart != null && dtoPart.getSize() > 0) {
-                    String dtoJson = new String(dtoPart.getInputStream().readAllBytes());
-                    UserUpdateDTO dto = objectMapper.readValue(dtoJson, UserUpdateDTO.class);
-                    return validateAndRespond(dto, response);
-                } else {
-                    sendErrorResponse(response, "Missing or empty 'dto' part in multipart request.");
-                    return false;
-                }
+            Part dtoPart = request.getPart("dto");
+            Part filePart = request.getPart("file");
 
-            } else if (contentType.startsWith("application/json")) {
-                byte[] rawBody = request.getInputStream().readAllBytes();
+            boolean hasValidDto = false;
 
-                if (rawBody.length == 0) {
-                    sendErrorResponse(response, "Request body is empty.");
-                    return false;
-                }
+            if (dtoPart != null && dtoPart.getSize() > 0) {
+                String dtoJson = new String(dtoPart.getInputStream().readAllBytes());
+                UserUpdateDTO dto = null;
 
-                UserUpdateDTO dto;
                 try {
-                    dto = objectMapper.readValue(rawBody, UserUpdateDTO.class);
+                    dto = objectMapper.readValue(dtoJson, UserUpdateDTO.class);
                 } catch (Exception e) {
-                    sendErrorResponse(response, "Malformed JSON body.");
+                    sendErrorResponse(response, "Invalid JSON format in 'dto' part: " + e.getMessage());
                     return false;
                 }
 
-                // Check if all fields are null
-                if (dto.firstName == null && dto.lastName == null && dto.email == null) {
-                    sendErrorResponse(response, "No user fields provided. At least one field is required.");
-                    return false;
-                }
+                if (dto.firstName != null || dto.lastName != null || dto.email != null) {
+                    hasValidDto = true;
 
-                return validateAndRespond(dto, response);
+                    // Validate fields
+                    return validateAndRespond(dto, response);
+                }
+            }
+
+            // If there's no valid DTO, make sure at least a file is being sent
+            if (!hasValidDto && (filePart == null || filePart.getSize() == 0)) {
+                sendErrorResponse(response, "No data provided. Must include either user fields or a file.");
+                return false;
             }
         }
 
         return true;
     }
-
 
 
     private boolean validateAndRespond(UserUpdateDTO dto, HttpServletResponse response) throws IOException {
