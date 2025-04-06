@@ -91,6 +91,7 @@ public class SlovoWebSocketHandler extends TextWebSocketHandler {
                     try {
                         if(validateToken(session).isEmpty()) {
                             session.close();
+                            return;
                         }
                         session.sendMessage(new TextMessage("NEW_MESSAGE " + relevantId));
                         System.out.println("Successfully sent the message. ");
