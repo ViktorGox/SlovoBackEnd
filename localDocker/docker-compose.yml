@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: youruser
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: appdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: adminpassword
+    ports:
+      - "8079:80"
+    depends_on:
+      - postgres
+  slovo-backend:
+    build:
+      context: ..
+      dockerfile: ./localDocker/Dockerfile
+    container_name: slovo-backend-app
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/appdb
+      DB_USERNAME: youruser
+      DB_PASSWORD: yourpassword
+      DEEPGRAM_TOKEN: 81769cde99f52961b3a2e6dd5f6544c945fee880
+      JWT_SECRET: secret-so-long-that-people-are-going-to-question-this
+volumes:
+  pg_data:
