@@ -61,7 +61,6 @@ extract_outputs_dev:
       dotenv: variables.env
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
-      when: always
 
 extract_outputs_prod:
   stage: output
@@ -90,7 +89,6 @@ extract_outputs_prod:
       - $CI_PROJECT_DIR/terraform.tfstate
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_NAME == "main"'
-      when: always
 
 build_image:
   image: docker:24.0.5
@@ -110,7 +108,6 @@ build_image:
     - docker push $CI_REGISTRY_IMAGE:latest
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
-      when: always
 
 deploy_to_ec2:
   stage: deploy
@@ -158,7 +155,6 @@ deploy_to_ec2:
       dotenv: variables.env
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
-      when: always
 
 deploy_to_ec2_prod:
   stage: deploy_prod
@@ -205,4 +201,3 @@ deploy_to_ec2_prod:
       dotenv: variables_prod.env
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_NAME == "main"'
-      when: always

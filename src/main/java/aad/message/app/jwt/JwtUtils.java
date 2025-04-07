@@ -18,7 +18,7 @@ import java.util.Optional;
 
 @Service
 public class JwtUtils {
-    private static final long ACCESS_TOKEN_EXPIRATION = 900000; // 15 min
+    private static final long ACCESS_TOKEN_EXPIRATION = 1800000; // 30 min
     private static final long REFRESH_TOKEN_EXPIRATION = 604800000; // 7 days
     private final Key key;
     private final RefreshTokenRepository refreshTokenRepository;
